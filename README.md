@@ -1,66 +1,10 @@
-## Foundry
+# Tranche Raise
+A decentralized crowdfunding platform with milestone-based fund release and contributor voting (Mini-DAO).
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Overview
+Each campaign is a separate smart contract that collects funds. After a successful raise, funds are locked and can only be withdrawn via "Requests" approved by >50% of contributors.
 
-Foundry consists of:
-
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+## Tech Stack
+- **Smart Contracts**: Solidity ^0.8.20, Foundry
+- **Frontend**: Next.js (App Router), Wagmi v2, TanStack Query RainbowKit, Viem
+- **Network**: Sepolia / Base Sepolia
