@@ -2,6 +2,9 @@
 
 pragma solidity ^0.8.24;
 
+/// @title Campaign
+/// @author dnctrlx
+/// @notice This contract represent single campaign itselff
 contract Campaign {
     address public immutable owner;
     string public campaignTitle;
