@@ -63,6 +63,11 @@ contract Campaign {
         _;
     }
 
+    modifier onlyDistributing() {
+        require(state() == CampaignState.Distributing, "Campaign is not in distributing state");
+        _;
+    }
+
     /// @notice Allows backers to fund the campaign
     function fund() external payable onlyFundraising {
         require(msg.value > 0, "Must send ETH");
