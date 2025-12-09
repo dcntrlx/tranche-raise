@@ -7,10 +7,11 @@ export default function Home() {
   const { address } = useAccount();
   return (
     <div>
-      <ConnectButton />
+      <ConnectButton showBalance={true} />
       <h1>Tranche Raise</h1>
       <p>Tranche Raise is a platform for raising funds for campaigns</p>
       <p>{`Connected address: ${address}` || 'Not connected'}</p>
+      {address && <button onClick={() => alert("Creating Campaign")}>Create Campaign</button>}
     </div>
   );
 }
