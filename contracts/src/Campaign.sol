@@ -75,15 +75,12 @@ contract Campaign {
         totalRaised += msg.value;
     }
 
-    /// @notice Allows backers to withdraw their funds WHILE fundraising (cancel contribution)
-    function cancelContribution(uint256 amount) external onlyFundraising {
-        require(backersRaises[msg.sender] >= amount, "Insufficient contributions");
-
-        backersRaises[msg.sender] -= amount;
+    /// @notice Function to withraw funds from campaign
+    function withdraw(uint256 amount) external onlyFundraising {
+        require(address(this).balance >= amount, "You havent raised this much");
         totalRaised -= amount;
-
         (bool success,) = payable(msg.sender).call{value: amount}("");
-        require(success, "Transfer failed");
+        require(success, "Withdrawal failed");
     }
 
     /// @notice Allows backers to get a refund if the campaign failed
@@ -92,15 +89,8 @@ contract Campaign {
         require(amount > 0, "No funds to refund");
 
         backersRaises[msg.sender] = 0;
+        // totalRaised -= amount;   Omitting here to save gas. It will not break logic because we are not going to use this campaign anymore
         (bool success,) = payable(msg.sender).call{value: amount}("");
         require(success, "Refund failed");
-    }
-
-    /// @notice Function to withraw funds from campaign
-    function withdraw(uint256 amount) external onlyFundraising {
-        require(address(this).balance >= amount, "You havent raised this much");
-
-        (bool success,) = payable(msg.sender).call{value: amount}("");
-        require(success, "Withdrawal failed");
     }
 }
