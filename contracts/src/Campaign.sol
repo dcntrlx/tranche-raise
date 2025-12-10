@@ -25,8 +25,8 @@ contract Campaign {
     uint256 public totalRaised;
     uint256 public totalDistributed;
 
-    constructor(string memory _campaignTitle, uint256 _campaignGoal, uint256 _campaignDuration) {
-        OWNER = msg.sender;
+    constructor(string memory _campaignTitle, uint256 _campaignGoal, uint256 _campaignDuration, address _owner) {
+        OWNER = _owner;
         campaignTitle = _campaignTitle;
         CAMPAIGN_GOAL = _campaignGoal;
         CAMPAIGN_DURATION = _campaignDuration;
