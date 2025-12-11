@@ -13,4 +13,8 @@ contract CampaignFactory {
         Campaign campaign = new Campaign(_campaignTitle, _campaignGoal, _campaignDuration, msg.sender);
         campaigns.push(address(campaign));
     }
+
+    function getAllCampaigns() external view returns (address[] memory) {
+        return campaigns;
+    }
 }
