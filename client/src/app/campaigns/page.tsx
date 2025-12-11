@@ -12,6 +12,8 @@ export default function Campaigns() {
         functionName: 'getAllCampaigns'
     })
 
+
+
     console.log(campaigns)
     return (
         <div>
