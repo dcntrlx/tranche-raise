@@ -1,19 +1,20 @@
 'use client'
 
-import { use } from "react";
-import { useReadContract, useReadContracts } from "wagmi";
+import { use, useState, useEffect } from "react";
+import { useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { notFound } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import { CAMPAIGN_ABI } from "../../contracts";
 import Link from "next/link";
+import { parseEther } from "viem"
 
 export default function CampaignDetails({ params }: { params: Promise<{ address: string }> }) {
     const campaignAddress = (use(params)).address as `0x${string}`;
 
     const { address } = useAccount();
 
-    const { data: campaignData, isLoading: isLoadingCampaignData } = useReadContracts({
+    const { data: campaignData, isLoading: isLoadingCampaignData, refetch: refetchCampaignData } = useReadContracts({
         contracts: [
             { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'campaignTitle' },
             { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'CAMPAIGN_GOAL' },
@@ -23,6 +24,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
             { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'OWNER' },
             { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'totalDistributed' },
             { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'totalRaised' },
+            { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'state' },
         ]
     })
 
@@ -34,16 +36,41 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
         campaignEnd,
         owner,
         totalDistributed,
-        totalRaised
+        totalRaised,
+        campaignState
     ] = campaignData?.map(data => data.result) ?? []
 
+    const isFundraising = campaignState === 0
+    const isVesting = campaignState === 1
+
     console.log(campaignData)
+    const { writeContract, isSuccess, data: hash } = useWriteContract();
+    const [value, setValue] = useState("0.0");
+
+    const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+        hash: hash
+    })
+
+    useEffect(() => {
+        refetchCampaignData()
+    }, [isConfirmed])
+
     if (isLoadingCampaignData) {
         return <div>Loading campaign details...</div>
     }
 
     if (!campaignTitle) {
         return notFound();
+    }
+
+
+    const fund = () => {
+        writeContract({
+            address: campaignAddress,
+            abi: CAMPAIGN_ABI,
+            functionName: 'fund',
+            value: parseEther(value)
+        })
     }
 
     return (
@@ -62,6 +89,15 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
             <p>owner: {owner}</p>
             <p>totalDistributed: {totalDistributed}</p>
             <p>totalRaised: {totalRaised}</p>
+            {isFundraising && <div>
+                <h2 className="text-xl font-bold">Fundraising</h2>
+                <h3 className="text-lg font-bold">Raised: {totalRaised}/{campaignGoal}</h3>
+                <input placeholder="Enter summ(ETH)" value={value} onChange={(e) => setValue(e.target.value)} />
+                <button onClick={fund}>Fund</button>
+            </div>}
+            {isVesting && <div>
+                <h2 className="text-xl font-bold">Vesting</h2>
+            </div>}
             {address === owner && <div>
                 <h2 className="text-xl font-bold">Campaign Owner Panel</h2>
             </div>}

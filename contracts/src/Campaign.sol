@@ -15,9 +15,9 @@ contract Campaign {
 
     enum CampaignState {
         Fundraising,
+        Distributing,
         Successful,
-        Failed,
-        Distributing
+        Failed
     }
 
     mapping(address => uint256) public backersRaises;

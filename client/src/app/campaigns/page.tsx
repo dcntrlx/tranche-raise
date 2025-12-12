@@ -25,7 +25,9 @@ export default function Campaigns() {
             <ConnectButton showBalance={true} />
             <h1>Campaigns</h1>
             {campaigns?.map((campaign) => (
-                <Link key={campaign} href={`campaigns/${campaign}`}>{campaign}</Link>
+                <li>
+                    <Link key={campaign} href={`campaigns/${campaign}`}>{campaign}</Link>
+                </li>
             ))}
         </div>
     )
