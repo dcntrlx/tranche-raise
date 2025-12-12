@@ -3,22 +3,26 @@
 import { use } from "react";
 import { useReadContract, useReadContracts } from "wagmi";
 import { notFound } from "next/navigation";
-
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
 import { CAMPAIGN_ABI } from "../../contracts";
+import Link from "next/link";
 
 export default function CampaignDetails({ params }: { params: Promise<{ address: string }> }) {
-    const address = (use(params)).address as `0x${string}`;
+    const campaignAddress = (use(params)).address as `0x${string}`;
+
+    const { address } = useAccount();
 
     const { data: campaignData, isLoading: isLoadingCampaignData } = useReadContracts({
         contracts: [
-            { address, abi: CAMPAIGN_ABI, functionName: 'campaignTitle' },
-            { address, abi: CAMPAIGN_ABI, functionName: 'CAMPAIGN_GOAL' },
-            { address, abi: CAMPAIGN_ABI, functionName: 'CAMPAIGN_DURATION' },
-            { address, abi: CAMPAIGN_ABI, functionName: 'campaignStart' },
-            { address, abi: CAMPAIGN_ABI, functionName: 'campaignEnd' },
-            { address, abi: CAMPAIGN_ABI, functionName: 'OWNER' },
-            { address, abi: CAMPAIGN_ABI, functionName: 'totalDistributed' },
-            { address, abi: CAMPAIGN_ABI, functionName: 'totalRaised' },
+            { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'campaignTitle' },
+            { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'CAMPAIGN_GOAL' },
+            { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'CAMPAIGN_DURATION' },
+            { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'campaignStart' },
+            { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'campaignEnd' },
+            { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'OWNER' },
+            { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'totalDistributed' },
+            { address: campaignAddress, abi: CAMPAIGN_ABI, functionName: 'totalRaised' },
         ]
     })
 
@@ -44,15 +48,23 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
 
     return (
         <div>
-            <h1>Campaign Details:</h1>
+            <nav>
+                <Link href="/">Home</Link>
+                <Link href="/campaigns">Campaigns</Link>
+            </nav>
+            <ConnectButton showBalance={true} />
+            <h2 className="text-xl font-bold">Campaign Details:</h2>
             <p>campaignTitle: {campaignTitle}</p>
             <p>campaignGoal: {campaignGoal}</p>
             <p>campaignDuration: {campaignDuration}</p>
-            <p>campaignStart: {campaignStart}</p>
-            <p>campaignEnd: {campaignEnd}</p>
+            <p>campaignStart: {(new Date(Number(campaignStart) * 1000)).toLocaleString()}</p>
+            <p>campaignEnd: {(new Date(Number(campaignEnd) * 1000)).toLocaleString()}</p>
             <p>owner: {owner}</p>
             <p>totalDistributed: {totalDistributed}</p>
             <p>totalRaised: {totalRaised}</p>
+            {address === owner && <div>
+                <h2 className="text-xl font-bold">Campaign Owner Panel</h2>
+            </div>}
         </div>
     )
 }

@@ -5,6 +5,7 @@ import { useAccount, useWriteContract } from 'wagmi';
 import { useState } from "react";
 import { CreateCampaign } from "./createCampaign"
 import { CAMPAIGN_FACTORY_ADDRESS, CAMPAIGN_FACTORY_ABI } from "./contracts";
+import Link from "next/link";
 
 export default function Home() {
   const { address } = useAccount();
@@ -21,6 +22,9 @@ export default function Home() {
   }
   return (
     <div>
+      <nav>
+        <Link href="/campaigns">Campaigns</Link>
+      </nav>
       <ConnectButton showBalance={true} />
       <h1>Tranche Raise</h1>
       <p>Tranche Raise is a platform for raising funds for campaigns</p>
