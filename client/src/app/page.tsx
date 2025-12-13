@@ -6,18 +6,19 @@ import { useState } from "react";
 import { CreateCampaign } from "./createCampaign"
 import { CAMPAIGN_FACTORY_ADDRESS, CAMPAIGN_FACTORY_ABI } from "./contracts";
 import Link from "next/link";
+import { parseEther } from 'viem';
 
 export default function Home() {
   const { address } = useAccount();
   const [isCreating, setIsCreating] = useState(false);
   const { writeContract, isSuccess } = useWriteContract();
-  const onCreate = (campaignName: string, campaignGoal: string, campaignDuration: string) => {
+  const onCreate = (campaignName: string, campaignGoal: string, campaignDuration: bigint) => {
     setIsCreating(false)
     writeContract({
       address: CAMPAIGN_FACTORY_ADDRESS,
       abi: CAMPAIGN_FACTORY_ABI,
       functionName: 'createCampaign',
-      args: [campaignName, campaignGoal, campaignDuration]
+      args: [campaignName, parseEther(campaignGoal), campaignDuration]
     })
   }
   return (

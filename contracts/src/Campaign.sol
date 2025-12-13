@@ -20,10 +20,25 @@ contract Campaign {
         Failed
     }
 
+    struct Tranche {
+        string trancheName;
+        uint256 trancheAmount;
+        uint256 votesFor;
+        uint256 totalAgainst;
+        mapping(address => bool) usersVoted;
+    }
+
+    Tranche[] public tranches;
+
     mapping(address => uint256) public backersRaises;
     address[] public backers;
     uint256 public totalRaised;
     uint256 public totalDistributed;
+
+    modifier onlyOwner() {
+        require(msg.sender == OWNER, "You are not an owner");
+        _;
+    }
 
     constructor(string memory _campaignTitle, uint256 _campaignGoal, uint256 _campaignDuration, address _owner) {
         OWNER = _owner;
@@ -98,4 +113,14 @@ contract Campaign {
         (bool success,) = payable(msg.sender).call{value: amount}("");
         require(success, "Refund failed");
     }
+
+    function requestTranche(string memory _trancheName, uint256 _trancheAmount) external onlyDistributing {
+        require(_trancheAmount > 0, "Tranche amount must be greater than 0");
+        require(_trancheAmount <= totalRaised - totalDistributed, "Not enough funds left to tranche");
+        Tranche storage newTranche = tranches.push();
+        newTranche.trancheName = _trancheName;
+        newTranche.trancheAmount = _trancheAmount;
+    }
+
+    // function requestProjectCancel() external onlyDistributing {}
 }
