@@ -8,7 +8,7 @@ import {Campaign} from "../src/Campaign.sol";
 contract CampaignScript is Script {
     function run() public {
         vm.startBroadcast();
-        Campaign campaign = new Campaign("Campaign", 100, 100);
+        Campaign campaign = new Campaign("Campaign", 100, 100, msg.sender);
         vm.stopBroadcast();
     }
 }

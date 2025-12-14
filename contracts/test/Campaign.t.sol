@@ -15,7 +15,7 @@ contract CampaignTest is Test {
         campaignGoal = 10 ether;
         campaignDuration = 7 days;
         campaignStart = block.timestamp;
-        campaign = new Campaign("Test Campaign", campaignGoal, campaignDuration);
+        campaign = new Campaign("Test Campaign", campaignGoal, campaignDuration, msg.sender);
     }
 
     /// @notice Tests that the campaign is active after start

@@ -154,6 +154,4 @@ contract Campaign {
             }
         }
     }
-
-    // function requestProjectCancel() external onlyDistributing {}
 }
