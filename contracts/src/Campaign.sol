@@ -20,11 +20,20 @@ contract Campaign {
         Failed
     }
 
+    enum TrancheState {
+        NotCreated,
+        Voting,
+        Executed,
+        Failed
+    }
+
     struct Tranche {
         string trancheName;
         uint256 trancheAmount;
         uint256 votesFor;
-        uint256 totalAgainst;
+        uint256 votesAgainst;
+        address payable recepient;
+        TrancheState state;
         mapping(address => bool) usersVoted;
     }
 
@@ -120,6 +129,30 @@ contract Campaign {
         Tranche storage newTranche = tranches.push();
         newTranche.trancheName = _trancheName;
         newTranche.trancheAmount = _trancheAmount;
+        newTranche.state = TrancheState.Voting;
+    }
+
+    /// @notice Allows investors to vote for a tranches
+    /// @dev Tranche can be executed if more than 50% of backers vote for it, othervise it is considered to be failed
+    function voteForTranche(uint256 _trancheIndex, bool _voteFor) external onlyDistributing {
+        Tranche storage tranche = tranches[_trancheIndex];
+        require(tranche.state == TrancheState.Voting, "Tranche is not in voting state");
+        require(!tranche.usersVoted[msg.sender], "You have already voted for this tranche");
+        tranche.usersVoted[msg.sender] = true;
+        if (_voteFor) {
+            tranche.votesFor += backersRaises[msg.sender];
+            if (tranche.votesFor >= totalRaised / 2) {
+                tranche.state = TrancheState.Executed;
+                totalDistributed += tranche.trancheAmount;
+                (bool success,) = payable(tranche.recepient).call{value: tranche.trancheAmount}("");
+                require(success, "Tranche execution transfer failed");
+            }
+        } else {
+            tranche.votesAgainst += backersRaises[msg.sender];
+            if (tranche.votesAgainst >= totalRaised / 2) {
+                tranche.state = TrancheState.Failed;
+            }
+        }
     }
 
     // function requestProjectCancel() external onlyDistributing {}
