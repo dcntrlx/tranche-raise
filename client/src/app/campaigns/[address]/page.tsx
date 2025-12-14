@@ -53,7 +53,21 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
 
     useEffect(() => {
         refetchCampaignData()
-    }, [isConfirmed])
+    }, [isConfirmed]);
+
+
+    const [trancheTitle, setTrancheTitle] = useState('');
+    const [trancheGoal, setTrancheGoal] = useState('');
+    const [trancheRecepient, setTrancheRecepient] = useState('');
+
+    const createTranche = () => {
+        writeContract({
+            address: campaignAddress,
+            abi: CAMPAIGN_ABI,
+            functionName: 'requestTranche',
+            args: [trancheTitle, parseEther(trancheGoal), trancheRecepient as `0x${string}`]
+        })
+    }
 
     if (isLoadingCampaignData) {
         return <div>Loading campaign details...</div>
@@ -97,6 +111,14 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
             </div>}
             {isVesting && <div>
                 <h2 className="text-xl font-bold">Vesting</h2>
+                <h3 className="text-lg font-bold">Distributed: {totalDistributed}/{campaignGoal}</h3>
+                <h3 className="text-lg font-bold">Tranches panel</h3>
+                {address === owner && <div>
+                    <input placeholder="Tranche title" value={trancheTitle} onChange={(e) => setTrancheTitle(e.target.value)} />
+                    <input placeholder="Tranche goal" value={trancheGoal} onChange={(e) => setTrancheGoal(e.target.value)} />
+                    <input placeholder="Tranche recepient" value={trancheRecepient} onChange={(e) => setTrancheRecepient(e.target.value)} />
+                    <button onClick={createTranche}>Create Tranche</button>
+                </div>}
             </div>}
             {address === owner && <div>
                 <h2 className="text-xl font-bold">Campaign Owner Panel</h2>

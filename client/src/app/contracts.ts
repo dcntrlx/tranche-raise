@@ -158,6 +158,29 @@ export const CAMPAIGN_ABI = [
     },
     {
         "type": "function",
+        "name": "requestTranche",
+        "inputs": [
+            {
+                "name": "_trancheName",
+                "type": "string",
+                "internalType": "string"
+            },
+            {
+                "name": "_trancheAmount",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "_recepint",
+                "type": "address",
+                "internalType": "address payable"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "state",
         "inputs": [],
         "outputs": [
@@ -197,6 +220,68 @@ export const CAMPAIGN_ABI = [
     },
     {
         "type": "function",
+        "name": "tranches",
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "trancheName",
+                "type": "string",
+                "internalType": "string"
+            },
+            {
+                "name": "trancheAmount",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "votesFor",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "votesAgainst",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "recepient",
+                "type": "address",
+                "internalType": "address payable"
+            },
+            {
+                "name": "state",
+                "type": "uint8",
+                "internalType": "enum Campaign.TrancheState"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "voteForTranche",
+        "inputs": [
+            {
+                "name": "_trancheIndex",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "_voteFor",
+                "type": "bool",
+                "internalType": "bool"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "withdraw",
         "inputs": [
             {
@@ -210,7 +295,7 @@ export const CAMPAIGN_ABI = [
     }
 ] as const
 
-export const CAMPAIGN_FACTORY_ADDRESS = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
+export const CAMPAIGN_FACTORY_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3"
 export const SUPPORTED_NETWORKS = ["localhost"]
 export const CAMPAIGN_FACTORY_ABI = [
     {

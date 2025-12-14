@@ -66,8 +66,8 @@ contract Campaign {
 
         if (totalRaised >= CAMPAIGN_GOAL) {
             // If campaign goal was reached then
-            if (totalDistributed == totalRaised) {
-                return CampaignState.Distributing; // If total distributed is equal to total raised, then company is distributing
+            if (totalDistributed < totalRaised) {
+                return CampaignState.Distributing; // If total distributed is less than total raised, then company is distributing
             }
             return CampaignState.Successful; // If totalDistibuted == totalRaised then company is finished
         }
@@ -123,12 +123,16 @@ contract Campaign {
         require(success, "Refund failed");
     }
 
-    function requestTranche(string memory _trancheName, uint256 _trancheAmount) external onlyDistributing {
+    function requestTranche(string memory _trancheName, uint256 _trancheAmount, address payable _recepint)
+        external
+        onlyDistributing
+    {
         require(_trancheAmount > 0, "Tranche amount must be greater than 0");
         require(_trancheAmount <= totalRaised - totalDistributed, "Not enough funds left to tranche");
         Tranche storage newTranche = tranches.push();
         newTranche.trancheName = _trancheName;
         newTranche.trancheAmount = _trancheAmount;
+        newTranche.recepient = _recepint;
         newTranche.state = TrancheState.Voting;
     }
 
@@ -144,7 +148,7 @@ contract Campaign {
             if (tranche.votesFor >= totalRaised / 2) {
                 tranche.state = TrancheState.Executed;
                 totalDistributed += tranche.trancheAmount;
-                (bool success,) = payable(tranche.recepient).call{value: tranche.trancheAmount}("");
+                (bool success,) = tranche.recepient.call{value: tranche.trancheAmount}("");
                 require(success, "Tranche execution transfer failed");
             }
         } else {
