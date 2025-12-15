@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 import {Campaign} from "../src/Campaign.sol";
+import {console} from "forge-std/console.sol";
 
 contract CampaignTest is Test {
     Campaign campaign;
@@ -29,6 +30,12 @@ contract CampaignTest is Test {
         assertFalse(campaign.state() == Campaign.CampaignState.Fundraising);
     }
 
+    /// @notice Test if state of campaign going from Fundraising to Distributing after goal reached
+    function testFundraisingEndsAfterGoalReached() public {
+        campaign.fund{value: campaign.CAMPAIGN_GOAL()}();
+        vm.assertTrue(campaign.state() == Campaign.CampaignState.Distributing);
+    }
+
     /// @notice Test if backersRaise of user changes after funding
     function test_FundInFundraisingState() public {
         uint256 amount = 10 ** 18;
@@ -49,6 +56,11 @@ contract CampaignTest is Test {
         campaign.fund{value: amount}();
         vm.expectRevert("You havent raised this much");
         campaign.withdraw(2 * amount);
+    }
+
+    function test_RequestTranche_OwnerInDistributingState() public {
+        campaign.fund{value: 10 ether}();
+        campaign.requestTranche("New Tranche", 10 ** 18, payable(address(this)));
     }
 
     receive() external payable {}

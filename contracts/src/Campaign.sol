@@ -47,6 +47,16 @@ contract Campaign {
         mapping(address => bool) usersVoted;
     }
 
+    /// @dev TrancheView to return for external sources
+    struct TrancheView {
+        string trancheName;
+        uint256 trancheAmount;
+        uint256 votesFor;
+        uint256 votesAgainst;
+        address recepient;
+        TrancheState state;
+    }
+
     /// @dev Array of all started traches. Includes not active traches
     Tranche[] public tranches;
 
@@ -181,9 +191,20 @@ contract Campaign {
         }
     }
 
-    /// @notice Function returns the amount of tranches
-    /// @dev Allows to get precise amount of tranches for external sources
-    function getTranchesAmount() external view returns (uint256) {
-        return tranches.length;
+    /// @notice Function returns verstion of tranches to view
+    function getAllTranches() external view returns (TrancheView[] memory) {
+        TrancheView[] memory tranchesView = new TrancheView[](tranches.length);
+        for (uint256 i = 0; i < tranches.length; i++) {
+            Tranche storage tranche = tranches[i];
+            tranchesView[i] = TrancheView({
+                trancheName: tranche.trancheName,
+                trancheAmount: tranche.trancheAmount,
+                votesFor: tranche.votesFor,
+                votesAgainst: tranche.votesAgainst,
+                recepient: tranche.recepient,
+                state: tranche.state
+            });
+        }
+        return tranchesView;
     }
 }

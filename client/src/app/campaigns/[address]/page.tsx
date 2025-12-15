@@ -43,7 +43,16 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
     const isFundraising = campaignState === 0
     const isVesting = campaignState === 1
 
-    console.log(campaignData)
+    const { data: tranchesData, refetch: refetchTranchesData } = useReadContract({
+        address: campaignAddress,
+        abi: CAMPAIGN_ABI,
+        functionName: 'getAllTranches'
+    })
+
+    const tranches = tranchesData ?? [];
+    console.log("Tranches")
+    console.log(tranches)
+
     const { writeContract, isSuccess, data: hash } = useWriteContract();
     const [value, setValue] = useState("0.0");
 
@@ -59,6 +68,8 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
         setTrancheTitle('');
         setTrancheGoal('');
         setTrancheRecepient('');
+
+        refetchTranchesData();
     }, [isSuccess]);
 
 
@@ -119,6 +130,15 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                 <h2 className="text-xl font-bold">Vesting</h2>
                 <h3 className="text-lg font-bold">Distributed: {totalDistributed}/{campaignGoal}</h3>
                 <h3 className="text-lg font-bold">Tranches panel</h3>
+                <ul>
+                    {tranches.map(tranche =>
+                        <li key={tranche.trancheName}>
+                            <h4>{tranche.trancheName}</h4>
+                            <p>{tranche.trancheAmount}</p>
+                            <p>{tranche.recepient}</p>
+                        </li>
+                    )}
+                </ul>
                 {address === owner && <div>
                     <input placeholder="Tranche title" value={trancheTitle} onChange={(e) => setTrancheTitle(e.target.value)} />
                     <input placeholder="Tranche goal" value={trancheGoal} onChange={(e) => setTrancheGoal(e.target.value)} />

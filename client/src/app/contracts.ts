@@ -1,4 +1,66 @@
-export const CAMPAIGN_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+export const CAMPAIGN_FACTORY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+export const CAMPAIGN_FACTORY_ABI = [
+    {
+        "type": "constructor",
+        "inputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "campaigns",
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "createCampaign",
+        "inputs": [
+            {
+                "name": "_campaignTitle",
+                "type": "string",
+                "internalType": "string"
+            },
+            {
+                "name": "_campaignGoal",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "_campaignDuration",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "getAllCampaigns",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address[]",
+                "internalType": "address[]"
+            }
+        ],
+        "stateMutability": "view"
+    }
+]
 export const CAMPAIGN_ABI = [
     {
         "type": "constructor",
@@ -151,6 +213,51 @@ export const CAMPAIGN_ABI = [
     },
     {
         "type": "function",
+        "name": "getAllTranches",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "tuple[]",
+                "internalType": "struct Campaign.TrancheView[]",
+                "components": [
+                    {
+                        "name": "trancheName",
+                        "type": "string",
+                        "internalType": "string"
+                    },
+                    {
+                        "name": "trancheAmount",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
+                    {
+                        "name": "votesFor",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
+                    {
+                        "name": "votesAgainst",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
+                    {
+                        "name": "recepient",
+                        "type": "address",
+                        "internalType": "address"
+                    },
+                    {
+                        "name": "state",
+                        "type": "uint8",
+                        "internalType": "enum Campaign.TrancheState"
+                    }
+                ]
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
         "name": "refund",
         "inputs": [],
         "outputs": [],
@@ -292,70 +399,5 @@ export const CAMPAIGN_ABI = [
         ],
         "outputs": [],
         "stateMutability": "nonpayable"
-    }
-] as const
-
-export const CAMPAIGN_FACTORY_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3"
-export const SUPPORTED_NETWORKS = ["localhost"]
-export const CAMPAIGN_FACTORY_ABI = [
-    {
-        "type": "constructor",
-        "inputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "campaigns",
-        "inputs": [
-            {
-                "name": "",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
-        "stateMutability": "view"
-    },
-    {
-        "type": "function",
-        "name": "createCampaign",
-        "inputs": [
-            {
-                "name": "_campaignTitle",
-                "type": "string",
-                "internalType": "string"
-            },
-            {
-                "name": "_campaignGoal",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "_campaignDuration",
-                "type": "uint256",
-                "internalType": "uint256"
-            }
-        ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
-    },
-    {
-        "type": "function",
-        "name": "getAllCampaigns",
-        "inputs": [],
-        "outputs": [
-            {
-                "name": "",
-                "type": "address[]",
-                "internalType": "address[]"
-            }
-        ],
-        "stateMutability": "view"
     }
 ] as const
