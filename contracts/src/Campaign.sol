@@ -6,11 +6,17 @@ pragma solidity ^0.8.24;
 /// @author dnctrlx
 /// @notice This contract represents a single campaign with state management
 contract Campaign {
+    /// @dev Represents campaign owner. One of the values from constructor of campaign
     address public immutable OWNER;
+    /// @dev Represents campaign title. One of the values from constructor of campaign
     string public campaignTitle;
+    /// @dev Represents capmaign goal in wei. One of the values from constructor of campaign
     uint256 public immutable CAMPAIGN_GOAL;
+    /// @dev Represents capmaign duration in seconds. One of the values from constructor of campaign
     uint256 public immutable CAMPAIGN_DURATION;
+    /// @dev campaignStart is set to block.timestamp on campaign creation. Represents capmaign creation timestamp
     uint256 public campaignStart;
+    /// @dev campaignEnd is calculated as campaignStart + CAMPAIGN_DURATION on campaign creation
     uint256 public campaignEnd;
 
     /// @notice CampaignState describes all possible states of the campaign
@@ -41,11 +47,16 @@ contract Campaign {
         mapping(address => bool) usersVoted;
     }
 
+    /// @dev Array of all started traches. Includes not active traches
     Tranche[] public tranches;
 
+    /// @dev Mapping of backers raises. Key is backer address, value is raise amount from current backer
     mapping(address => uint256) public backersRaises;
+    /// @dev Array of backers for current campaign
     address[] public backers;
+    /// @dev Total amount of raised funds from backers
     uint256 public totalRaised;
+    /// @dev Total amount of distributed funds from backers
     uint256 public totalDistributed;
 
     modifier onlyOwner() {
