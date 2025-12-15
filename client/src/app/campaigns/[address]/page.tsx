@@ -55,6 +55,12 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
         refetchCampaignData()
     }, [isConfirmed]);
 
+    useEffect(() => {
+        setTrancheTitle('');
+        setTrancheGoal('');
+        setTrancheRecepient('');
+    }, [isSuccess]);
+
 
     const [trancheTitle, setTrancheTitle] = useState('');
     const [trancheGoal, setTrancheGoal] = useState('');
@@ -66,7 +72,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
             abi: CAMPAIGN_ABI,
             functionName: 'requestTranche',
             args: [trancheTitle, parseEther(trancheGoal), trancheRecepient as `0x${string}`]
-        })
+        },)
     }
 
     if (isLoadingCampaignData) {

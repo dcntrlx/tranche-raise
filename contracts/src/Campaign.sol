@@ -13,6 +13,8 @@ contract Campaign {
     uint256 public campaignStart;
     uint256 public campaignEnd;
 
+    /// @notice CampaignState describes all possible states of the campaign
+    /// @dev State is resolved by the state() function
     enum CampaignState {
         Fundraising,
         Distributing,
@@ -20,6 +22,7 @@ contract Campaign {
         Failed
     }
 
+    /// @notice TrancheState describes all possible states of a tranche
     enum TrancheState {
         NotCreated,
         Voting,
@@ -27,6 +30,7 @@ contract Campaign {
         Failed
     }
 
+    /// @notice Tranche is a struct representing single tranche request
     struct Tranche {
         string trancheName;
         uint256 trancheAmount;
@@ -59,6 +63,7 @@ contract Campaign {
     }
 
     /// @notice Calculates the current state of the campaign based on time and total raised
+    /// @dev Uses CAMPAIGN_GOAL and CAMPAIGN_DURATION constants to determine the current state of the campaign
     function state() public view returns (CampaignState) {
         if (block.timestamp < campaignEnd && totalRaised < CAMPAIGN_GOAL) {
             return CampaignState.Fundraising; // If campaign fundraising period is not over and goal is not reached, then company is fundraising
@@ -87,12 +92,14 @@ contract Campaign {
         _;
     }
 
+    /// @notice Modifier to check if campgaing in CampaignState.Distributing state
     modifier onlyDistributing() {
         require(state() == CampaignState.Distributing, "Campaign is not in distributing state");
         _;
     }
 
     /// @notice Allows backers to fund the campaign
+    /// @dev Fund is only possible during CampaignState.Fundraising state
     function fund() external payable onlyFundraising {
         require(msg.value > 0, "Must send ETH");
 
@@ -105,6 +112,7 @@ contract Campaign {
     }
 
     /// @notice Function to withraw funds from campaign
+    /// @dev Withdraw is only possible during CampaignState.Fundraising state
     function withdraw(uint256 amount) external onlyFundraising {
         require(address(this).balance >= amount, "You havent raised this much");
         totalRaised -= amount;
@@ -113,6 +121,7 @@ contract Campaign {
     }
 
     /// @notice Allows backers to get a refund if the campaign failed
+    /// @dev Refund is only possible if campaign is in CampaignState.Failed state
     function refund() external inState(CampaignState.Failed) {
         uint256 amount = backersRaises[msg.sender];
         require(amount > 0, "No funds to refund");
@@ -123,6 +132,8 @@ contract Campaign {
         require(success, "Refund failed");
     }
 
+    /// @notice Function to request a tranche from the campaign
+    /// @dev Tranche can be executed if more than 50% of backers vote for it, othervise it is considered to be failed
     function requestTranche(string memory _trancheName, uint256 _trancheAmount, address payable _recepint)
         external
         onlyDistributing
@@ -157,5 +168,11 @@ contract Campaign {
                 tranche.state = TrancheState.Failed;
             }
         }
+    }
+
+    /// @notice Function returns the amount of tranches
+    /// @dev Allows to get precise amount of tranches for external sources
+    function getTranchesAmount() external view returns (uint256) {
+        return tranches.length;
     }
 }
