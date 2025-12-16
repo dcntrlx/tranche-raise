@@ -193,6 +193,7 @@ contract Campaign {
     }
 
     /// @notice Function returns verstion of tranches to view
+    /// @dev Supposed to be used only for external calls not in transactions
     function getAllTranches() external view returns (TrancheView[] memory) {
         TrancheView[] memory tranchesView = new TrancheView[](tranches.length);
         for (uint256 i = 0; i < tranches.length; i++) {

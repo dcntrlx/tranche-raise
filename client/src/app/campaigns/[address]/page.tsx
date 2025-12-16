@@ -43,15 +43,14 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
     const isFundraising = campaignState === 0
     const isVesting = campaignState === 1
 
-    const { data: tranchesData, refetch: refetchTranchesData } = useReadContract({
+    const { data: tranchesData, refetch: refetchTranchesData, error: tranchesError } = useReadContract({
         address: campaignAddress,
         abi: CAMPAIGN_ABI,
         functionName: 'getAllTranches'
     })
 
+    console.log(tranchesError);
     const tranches = tranchesData ?? [];
-    console.log("Tranches")
-    console.log(tranches)
 
     const { writeContract, isSuccess, data: hash } = useWriteContract();
     const [value, setValue] = useState("0.0");
@@ -70,7 +69,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
         setTrancheRecepient('');
 
         refetchTranchesData();
-    }, [isSuccess]);
+    }, [isConfirmed]);
 
 
     const [trancheTitle, setTrancheTitle] = useState('');
@@ -131,7 +130,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                 <h3 className="text-lg font-bold">Distributed: {totalDistributed}/{campaignGoal}</h3>
                 <h3 className="text-lg font-bold">Tranches panel</h3>
                 <ul>
-                    {tranches.map(tranche =>
+                    {tranches.map((tranche) =>
                         <li key={tranche.trancheName}>
                             <h4>{tranche.trancheName}</h4>
                             <p>{tranche.trancheAmount}</p>
