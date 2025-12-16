@@ -16,7 +16,7 @@ contract CampaignTest is Test {
         campaignGoal = 10 ether;
         campaignDuration = 7 days;
         campaignStart = block.timestamp;
-        campaign = new Campaign("Test Campaign", campaignGoal, campaignDuration, msg.sender);
+        campaign = new Campaign("Test Campaign", campaignGoal, campaignDuration, address(this));
     }
 
     /// @notice Tests that the campaign is active after start
@@ -58,9 +58,33 @@ contract CampaignTest is Test {
         campaign.withdraw(2 * amount);
     }
 
+    /// @notice Test if it possible for owner to request a tranche during distributing stage
     function test_RequestTranche_OwnerInDistributingState() public {
         campaign.fund{value: 10 ether}();
+        vm.prank(address(this));
         campaign.requestTranche("New Tranche", 10 ** 18, payable(address(this)));
+        assertTrue(campaign.getAllTranches()[0].state == Campaign.TrancheState.Voting);
+    }
+
+    /// @notice Test if tranches array is empty until first tranche is created
+    function test_RequestTranche_TracncheNotExistsUntilCreated() public {
+        campaign.fund{value: 10 ether}();
+        assertEq(campaign.getAllTranches().length, 0, "Length of tranches should be 0 until first one was created");
+    }
+
+    /// @notice Test if it impossible to request a tranche before distributing stage
+    function testRevert_RequestTranche_CantRequestTrancheBeforeDistributing() public {
+        vm.expectRevert("Campaign is not in distributing state");
+        campaign.requestTranche("New Tranche", 10 ** 18, payable(address(this)));
+    }
+
+    /// @notice Test if it impossible for non-owner to request a tranche
+    function testRevert_RequestTranche_NotOwnerCantRequestTranche() public {
+        campaign.fund{value: 10 ether}();
+        vm.startPrank(address(1));
+        vm.expectRevert("You are not an owner");
+        campaign.requestTranche("New Tranche", 10 ** 18, payable(address(this)));
+        vm.stopPrank();
     }
 
     receive() external payable {}

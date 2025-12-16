@@ -158,6 +158,7 @@ contract Campaign {
     function requestTranche(string memory _trancheName, uint256 _trancheAmount, address payable _recepint)
         external
         onlyDistributing
+        onlyOwner
     {
         require(_trancheAmount > 0, "Tranche amount must be greater than 0");
         require(_trancheAmount <= totalRaised - totalDistributed, "Not enough funds left to tranche");
