@@ -42,6 +42,8 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
 
     const isFundraising = campaignState === 0
     const isVesting = campaignState === 1
+    const isFinished = campaignState === 2
+    const isRejected = campaignState === 3
 
     const { data: tranchesData, refetch: refetchTranchesData, error: tranchesError } = useReadContract({
         address: campaignAddress,
@@ -91,8 +93,8 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
     }
 
     useEffect(() => {
-        console.log(writeError);
-    }, [writeError])
+        refetchCampaignData();
+    }, [isConfirmed])
 
     if (isLoadingCampaignData) {
         return <div>Loading campaign details...</div>
@@ -144,13 +146,15 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                             <h4 className="text-lg font-bold">Tranche name: {tranche.trancheName}</h4>
                             <p>Tranche recepient: {tranche.recepient}</p>
                             <p>Tranche amount: {tranche.trancheAmount}</p>
-                            <p>Tranche votes for: {tranche.votesFor}</p>
-                            <p>Tranche votes against: {tranche.votesAgainst}</p>
                             {tranche.state === 1 && <div>
+                                <p>Tranche votes for: {tranche.votesFor}</p>
+                                <p>Tranche votes against: {tranche.votesAgainst}</p>
                                 <button onClick={() => voteTranche(BigInt(index), true)}>Vote for</button>
                                 <button onClick={() => voteTranche(BigInt(index), false)}>Vote against</button>
                             </div>
                             }
+                            {tranche.state === 2 && <p>Tranche executed</p>}
+                            {tranche.state === 3 && <p>Tranche rejected</p>}
                         </li>
                     )}
                 </ul>
@@ -160,6 +164,12 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                     <input placeholder="Tranche recepient" value={trancheRecepient} onChange={(e) => setTrancheRecepient(e.target.value)} />
                     <button onClick={createTranche}>Create Tranche</button>
                 </div>}
+            </div>}
+            {isFinished && <div>
+                <h2 className="text-xl font-bold">Campaign finished</h2>
+            </div>}
+            {isRejected && <div>
+                <h2 className="text-xl font-bold">Campaign rejected</h2>
             </div>}
             {address === owner && <div>
                 <h2 className="text-xl font-bold">Campaign Owner Panel</h2>

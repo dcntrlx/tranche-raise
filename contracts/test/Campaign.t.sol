@@ -89,6 +89,7 @@ contract CampaignTest is Test {
         vm.stopPrank();
     }
 
+    /// @notice Test to check if vote + executed tranche works
     function test_VoteForTranche() public {
         campaign.fund{value: 10 ether}();
         vm.prank(owner);

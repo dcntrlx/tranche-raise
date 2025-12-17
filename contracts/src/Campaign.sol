@@ -170,7 +170,7 @@ contract Campaign {
     }
 
     /// @notice Allows investors to vote for a tranches
-    /// @dev Tranche can be executed if more than 50% of backers vote for it, othervise it is considered to be failed
+    /// @dev Tranche can be executed if more than 50% of backers vote for it, othervise it is considered to be failed. Will also fail if recepient doesnt have receive or fallback
     function voteForTranche(uint256 _trancheIndex, bool _voteFor) external onlyDistributing {
         Tranche storage tranche = tranches[_trancheIndex];
         require(tranche.state == TrancheState.Voting, "Tranche is not in voting state");
@@ -181,18 +181,8 @@ contract Campaign {
             if (tranche.votesFor >= totalRaised / 2) {
                 tranche.state = TrancheState.Executed;
                 totalDistributed += tranche.trancheAmount;
-                (bool success, bytes memory returnData) =
-                    payable(tranche.recepient).call{value: tranche.trancheAmount}("");
-                if (!success) {
-                    if (returnData.length > 0) {
-                        assembly {
-                            let returndata_size := mload(returnData)
-                            revert(add(32, returnData), returndata_size)
-                        }
-                    } else {
-                        revert("Tranche execution transfer failed");
-                    }
-                }
+                (bool success,) = payable(tranche.recepient).call{value: tranche.trancheAmount}("");
+                require(success, "Tranche execution transfer failed");
             }
         } else {
             tranche.votesAgainst += backersRaises[msg.sender];
