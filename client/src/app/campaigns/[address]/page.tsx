@@ -52,16 +52,12 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
     console.log(tranchesError);
     const tranches = tranchesData ?? [];
 
-    const { writeContract, isSuccess, data: hash } = useWriteContract();
+    const { writeContract, isSuccess, data: hash, error: writeError } = useWriteContract();
     const [value, setValue] = useState("0.0");
 
     const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
         hash: hash
     })
-
-    useEffect(() => {
-        refetchCampaignData()
-    }, [isConfirmed]);
 
     useEffect(() => {
         setTrancheTitle('');
@@ -84,6 +80,19 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
             args: [trancheTitle, parseEther(trancheGoal), trancheRecepient as `0x${string}`]
         },)
     }
+
+    const voteTranche = (_trancheIndex: bigint, _voteFor: boolean) => {
+        writeContract({
+            address: campaignAddress,
+            abi: CAMPAIGN_ABI,
+            functionName: "voteForTranche",
+            args: [_trancheIndex, _voteFor]
+        })
+    }
+
+    useEffect(() => {
+        console.log(writeError);
+    }, [writeError])
 
     if (isLoadingCampaignData) {
         return <div>Loading campaign details...</div>
@@ -130,11 +139,18 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                 <h3 className="text-lg font-bold">Distributed: {totalDistributed}/{campaignGoal}</h3>
                 <h3 className="text-lg font-bold">Tranches panel</h3>
                 <ul>
-                    {tranches.map((tranche) =>
+                    {tranches.map((tranche, index) =>
                         <li key={tranche.trancheName}>
-                            <h4>{tranche.trancheName}</h4>
-                            <p>{tranche.trancheAmount}</p>
-                            <p>{tranche.recepient}</p>
+                            <h4 className="text-lg font-bold">Tranche name: {tranche.trancheName}</h4>
+                            <p>Tranche recepient: {tranche.recepient}</p>
+                            <p>Tranche amount: {tranche.trancheAmount}</p>
+                            <p>Tranche votes for: {tranche.votesFor}</p>
+                            <p>Tranche votes against: {tranche.votesAgainst}</p>
+                            {tranche.state === 1 && <div>
+                                <button onClick={() => voteTranche(BigInt(index), true)}>Vote for</button>
+                                <button onClick={() => voteTranche(BigInt(index), false)}>Vote against</button>
+                            </div>
+                            }
                         </li>
                     )}
                 </ul>

@@ -181,8 +181,18 @@ contract Campaign {
             if (tranche.votesFor >= totalRaised / 2) {
                 tranche.state = TrancheState.Executed;
                 totalDistributed += tranche.trancheAmount;
-                (bool success,) = tranche.recepient.call{value: tranche.trancheAmount}("");
-                require(success, "Tranche execution transfer failed");
+                (bool success, bytes memory returnData) =
+                    payable(tranche.recepient).call{value: tranche.trancheAmount}("");
+                if (!success) {
+                    if (returnData.length > 0) {
+                        assembly {
+                            let returndata_size := mload(returnData)
+                            revert(add(32, returnData), returndata_size)
+                        }
+                    } else {
+                        revert("Tranche execution transfer failed");
+                    }
+                }
             }
         } else {
             tranche.votesAgainst += backersRaises[msg.sender];

@@ -14,7 +14,7 @@ contract CampaignTest is Test {
     uint256 campaignStart;
 
     function setUp() public {
-        owner = makeAddress("owner");
+        owner = makeAddr("owner");
         campaignGoal = 10 ether;
         campaignDuration = 7 days;
         campaignStart = block.timestamp;
@@ -87,6 +87,15 @@ contract CampaignTest is Test {
         vm.expectRevert("You are not an owner");
         campaign.requestTranche("New Tranche", 10 ** 18, payable(owner));
         vm.stopPrank();
+    }
+
+    function test_VoteForTranche() public {
+        campaign.fund{value: 10 ether}();
+        vm.prank(owner);
+        campaign.requestTranche("New Tranche", 10 ** 17, payable(owner));
+        campaign.voteForTranche(0, true);
+        assertEq(campaign.getAllTranches()[0].votesFor, 10 ** 19);
+        assertEq(uint256(campaign.getAllTranches()[0].state), uint256(Campaign.TrancheState.Executed));
     }
 
     receive() external payable {}
