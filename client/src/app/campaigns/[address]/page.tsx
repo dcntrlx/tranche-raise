@@ -172,7 +172,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                 <h2 className="text-xl font-bold">Campaign rejected</h2>
             </div>}
             {address === owner && <div>
-                <h2 className="text-xl font-bold">Campaign Owner Panel</h2>
+                <h2 className="text-xl font-bold">Campaign Manager Panel</h2>
             </div>}
         </div>
     )

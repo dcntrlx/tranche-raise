@@ -1,7 +1,7 @@
 'use client'
 
-import { useAccount, useReadContract } from "wagmi";
-import { CAMPAIGN_FACTORY_ADDRESS, CAMPAIGN_FACTORY_ABI } from "../contracts";
+import { useAccount, useReadContract, useReadContracts } from "wagmi";
+import { CAMPAIGN_FACTORY_ADDRESS, CAMPAIGN_FACTORY_ABI, CAMPAIGN_ABI } from "../contracts";
 import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
@@ -14,9 +14,57 @@ export default function Campaigns() {
         functionName: 'getAllCampaigns'
     })
 
+    const { data: campaignsFetchedStates } = useReadContracts({
+        contracts: campaigns?.map((campaign) => ({
+            address: campaign,
+            abi: CAMPAIGN_ABI,
+            functionName: 'state'
+        })) || []
+    })
 
+    const { data: campaignsFetchedNames } = useReadContracts({
+        contracts: campaigns?.map((campaign) => ({
+            address: campaign,
+            abi: CAMPAIGN_ABI,
+            functionName: 'campaignTitle'
+        })) || []
+    })
 
-    console.log(campaigns)
+    const { data: campaignsFetchedRaised } = useReadContracts({
+        contracts: campaigns?.map((campaign) => ({
+            address: campaign,
+            abi: CAMPAIGN_ABI,
+            functionName: 'totalRaised'
+        })) || []
+    })
+
+    const { data: campaignsFetchedDistributed } = useReadContracts({
+        contracts: campaigns?.map((campaign) => ({
+            address: campaign,
+            abi: CAMPAIGN_ABI,
+            functionName: 'totalDistributed'
+        })) || []
+    })
+
+    const { data: campaignsFetchedGoal } = useReadContracts({
+        contracts: campaigns?.map((campaign) => ({
+            address: campaign,
+            abi: CAMPAIGN_ABI,
+            functionName: 'CAMPAIGN_GOAL'
+        })) || []
+    })
+
+    const campaignsData = campaignsFetchedNames?.map((data, index) => ({
+        campaignAddress: campaigns[index],
+        campaignTitle: data.result,
+        campaignState: campaignsFetchedStates?.[index].result,
+        campaignRaised: campaignsFetchedRaised?.[index].result,
+        campaignDistributed: campaignsFetchedDistributed?.[index].result,
+        campaignGoal: campaignsFetchedGoal?.[index].result,
+    })) ?? []
+
+    console.log(campaignsData);
+
     return (
         <div>
             <nav>
@@ -24,9 +72,29 @@ export default function Campaigns() {
             </nav>
             <ConnectButton showBalance={true} />
             <h1>Campaigns</h1>
-            {campaigns?.map((campaign) => (
+            {campaignsData?.map((campaign) => (
                 <li>
-                    <Link key={campaign} href={`campaigns/${campaign}`}>{campaign}</Link>
+                    <Link key={campaign.campaignAddress} href={`campaigns/${campaign.campaignAddress}`}>{campaign.campaignTitle}</Link>
+                    {campaign.campaignState === 0 && <div>
+                        <p>fundraising</p>
+                        <p>goal: {campaign.campaignGoal}</p>
+                        <p>raised: {campaign.campaignRaised}</p>
+                    </div>}
+                    {campaign.campaignState === 1 && <div>
+                        <p>vesting</p>
+                        <p>raised: {campaign.campaignRaised}</p>
+                        <p>goal: {campaign.campaignGoal}</p>
+                        <p>distributed: {campaign.campaignDistributed}</p>
+                    </div>}
+                    {campaign.campaignState === 2 && <div>
+                        <p>finished</p>
+                        <p>raised: {campaign.campaignRaised}</p>
+                        <p>goal: {campaign.campaignGoal}</p>
+                    </div>}
+                    {campaign.campaignState === 3 && <div>
+                        <p>rejected</p>
+                        <p>goal: {campaign.campaignGoal}</p>
+                    </div>}
                 </li>
             ))}
         </div>

@@ -60,7 +60,7 @@ export const CAMPAIGN_FACTORY_ABI = [
         ],
         "stateMutability": "view"
     }
-]
+] as const
 export const CAMPAIGN_ABI = [
     {
         "type": "constructor",
