@@ -7,7 +7,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import { CAMPAIGN_ABI } from "../../contracts";
 import Link from "next/link";
-import { parseEther } from "viem"
+import { formatEther, parseEther, parseUnits } from "viem"
 
 export default function CampaignDetails({ params }: { params: Promise<{ address: string }> }) {
     const campaignAddress = (use(params)).address as `0x${string}`;
@@ -121,34 +121,33 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                 <Link href="/campaigns">Campaigns</Link>
             </nav>
             <ConnectButton showBalance={true} />
-            <h2 className="text-xl font-bold">Campaign Details:</h2>
-            <p>campaignTitle: {campaignTitle}</p>
-            <p>campaignGoal: {campaignGoal}</p>
-            <p>campaignDuration: {campaignDuration}</p>
-            <p>campaignStart: {(new Date(Number(campaignStart) * 1000)).toLocaleString()}</p>
-            <p>campaignEnd: {(new Date(Number(campaignEnd) * 1000)).toLocaleString()}</p>
-            <p>owner: {owner}</p>
-            <p>totalDistributed: {totalDistributed}</p>
-            <p>totalRaised: {totalRaised}</p>
+            <h2 className="text-xl font-bold">Campaign: {campaignTitle}</h2>
+            <p>Goal: {formatEther(campaignGoal)}</p>
+            <p>Duration: {campaignDuration}</p>
+            <p>Start: {(new Date(Number(campaignStart) * 1000)).toLocaleString()}</p>
+            <p>End: {(new Date(Number(campaignEnd) * 1000)).toLocaleString()}</p>
+            <p>Owner: {owner}</p>
+            <p>totalDistributed: {totalDistributed ? formatEther(totalDistributed as bigint) : "0"} ETH</p>
+            <p>totalRaised: {totalRaised ? formatEther(totalRaised as bigint) : "0"} ETH</p>
             {isFundraising && <div>
                 <h2 className="text-xl font-bold">Fundraising</h2>
-                <h3 className="text-lg font-bold">Raised: {totalRaised}/{campaignGoal}</h3>
+                <h3 className="text-lg font-bold">Raised: {totalRaised ? formatEther(totalRaised as bigint) : "0"}/{campaignGoal ? formatEther(campaignGoal as bigint) : "0"} ETH</h3>
                 <input placeholder="Enter summ(ETH)" value={value} onChange={(e) => setValue(e.target.value)} />
                 <button onClick={fund}>Fund</button>
             </div>}
             {isVesting && <div>
                 <h2 className="text-xl font-bold">Vesting</h2>
-                <h3 className="text-lg font-bold">Distributed: {totalDistributed}/{campaignGoal}</h3>
+                <h3 className="text-lg font-bold">Distributed: {totalDistributed ? formatEther(totalDistributed as bigint) : "0"}/{campaignGoal ? formatEther(campaignGoal as bigint) : "0"} ETH</h3>
                 <h3 className="text-lg font-bold">Tranches panel</h3>
                 <ul>
                     {tranches.map((tranche, index) =>
                         <li key={tranche.trancheName}>
                             <h4 className="text-lg font-bold">Tranche name: {tranche.trancheName}</h4>
                             <p>Tranche recepient: {tranche.recepient}</p>
-                            <p>Tranche amount: {tranche.trancheAmount}</p>
+                            <p>Tranche amount: {tranche.trancheAmount ? formatEther(tranche.trancheAmount as bigint) : "0"} ETH</p>
                             {tranche.state === 1 && <div>
-                                <p>Tranche votes for: {tranche.votesFor}</p>
-                                <p>Tranche votes against: {tranche.votesAgainst}</p>
+                                <p>Tranche votes for: {tranche.votesFor ? formatEther(tranche.votesFor as bigint) : "0"}</p>
+                                <p>Tranche votes against: {tranche.votesAgainst ? formatEther(tranche.votesAgainst as bigint) : "0"}</p>
                                 <button onClick={() => voteTranche(BigInt(index), true)}>Vote for</button>
                                 <button onClick={() => voteTranche(BigInt(index), false)}>Vote against</button>
                             </div>
