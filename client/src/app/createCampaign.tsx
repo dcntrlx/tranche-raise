@@ -12,7 +12,7 @@ export function CreateCampaign({ onCreate }: { onCreate: (campaignName: string, 
             <h2>Creating campaign</h2>
             <input placeholder="Campaign name" value={campaignName} onChange={(e) => setCampaignName(e.target.value)} />
             <input placeholder="Campaign goal" value={campaignGoal} onChange={(e) => setCampaignGoal(e.target.value)} />
-            <input placeholder="Campaign duration" value={campaignDuration} onChange={(e) => setCampaignDuration(e.target.value)} />
+            <input placeholder="Campaign duration(days)" value={campaignDuration} onChange={(e) => setCampaignDuration(e.target.value)} />
             <button onClick={() => { onCreate(campaignName, campaignGoal, campaignDuration) }}>Create campaign</button>
         </div>
     )

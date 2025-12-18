@@ -54,6 +54,14 @@ export default function Campaigns() {
         })) || []
     })
 
+    const { data: campaignsFetchedEnd } = useReadContracts({
+        contracts: campaigns?.map((campaign) => ({
+            address: campaign,
+            abi: CAMPAIGN_ABI,
+            functionName: 'campaignEnd'
+        })) || []
+    })
+
     const campaignsData = campaignsFetchedNames?.map((data, index) => ({
         campaignAddress: campaigns[index],
         campaignTitle: data.result,
@@ -61,6 +69,7 @@ export default function Campaigns() {
         campaignRaised: campaignsFetchedRaised?.[index].result,
         campaignDistributed: campaignsFetchedDistributed?.[index].result,
         campaignGoal: campaignsFetchedGoal?.[index].result,
+        campaignEnd: campaignsFetchedEnd?.[index].result,
     })) ?? []
 
     console.log(campaignsData);
@@ -79,6 +88,7 @@ export default function Campaigns() {
                         <p>fundraising</p>
                         <p>goal: {campaign.campaignGoal}</p>
                         <p>raised: {campaign.campaignRaised}</p>
+                        <p>ends: {(new Date(Number(campaign.campaignEnd) * 1000)).toLocaleString()}</p>
                     </div>}
                     {campaign.campaignState === 1 && <div>
                         <p>vesting</p>

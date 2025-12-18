@@ -12,13 +12,14 @@ export default function Home() {
   const { address } = useAccount();
   const [isCreating, setIsCreating] = useState(false);
   const { writeContract, isSuccess } = useWriteContract();
-  const onCreate = (campaignName: string, campaignGoal: string, campaignDuration: bigint) => {
+  const onCreate = (campaignName: string, campaignGoal: string, campaignDurationInput: string) => {
     setIsCreating(false)
+    const duration = BigInt(campaignDurationInput) * 86400n
     writeContract({
       address: CAMPAIGN_FACTORY_ADDRESS,
       abi: CAMPAIGN_FACTORY_ABI,
       functionName: 'createCampaign',
-      args: [campaignName, parseEther(campaignGoal), campaignDuration]
+      args: [campaignName, parseEther(campaignGoal), duration]
     })
   }
   return (
