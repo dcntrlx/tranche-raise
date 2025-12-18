@@ -133,7 +133,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                 <h2 className="text-xl font-bold">Fundraising</h2>
                 <h3 className="text-lg font-bold">Raised: {totalRaised ? formatEther(totalRaised as bigint) : "0"}/{campaignGoal ? formatEther(campaignGoal as bigint) : "0"} ETH</h3>
                 <input placeholder="Enter summ(ETH)" value={value} onChange={(e) => setValue(e.target.value)} />
-                <button onClick={fund}>Fund</button>
+                <button className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors mt-2" onClick={fund}>Fund</button>
             </div>}
             {isVesting && <div>
                 <h2 className="text-xl font-bold">Vesting</h2>
@@ -148,8 +148,8 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                             {tranche.state === 1 && <div>
                                 <p>Tranche votes for: {tranche.votesFor ? formatEther(tranche.votesFor as bigint) : "0"}</p>
                                 <p>Tranche votes against: {tranche.votesAgainst ? formatEther(tranche.votesAgainst as bigint) : "0"}</p>
-                                <button onClick={() => voteTranche(BigInt(index), true)}>Vote for</button>
-                                <button onClick={() => voteTranche(BigInt(index), false)}>Vote against</button>
+                                <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors mr-2" onClick={() => voteTranche(BigInt(index), true)}>Vote for</button>
+                                <button className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors" onClick={() => voteTranche(BigInt(index), false)}>Vote against</button>
                             </div>
                             }
                             {tranche.state === 2 && <p>Tranche executed</p>}
@@ -161,7 +161,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                     <input placeholder="Tranche title" value={trancheTitle} onChange={(e) => setTrancheTitle(e.target.value)} />
                     <input placeholder="Tranche goal" value={trancheGoal} onChange={(e) => setTrancheGoal(e.target.value)} />
                     <input placeholder="Tranche recepient" value={trancheRecepient} onChange={(e) => setTrancheRecepient(e.target.value)} />
-                    <button onClick={createTranche}>Create Tranche</button>
+                    <button className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors mt-2" onClick={createTranche}>Create Tranche</button>
                 </div>}
             </div>}
             {isFinished && <div>
