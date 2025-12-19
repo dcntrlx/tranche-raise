@@ -83,17 +83,17 @@ export default function Campaigns() {
                 <Link href="/">Home</Link>
             </nav>
             <ConnectButton showBalance={true} />
-            <h1>Campaigns</h1>
+            <h1 className="text-4xl font-bold mb-8">Active campaigns</h1>
             {campaignsData?.map((campaign) => (
-                <li>
+                <li className="mb-10">
                     <Link key={campaign.campaignAddress} href={`campaigns/${campaign.campaignAddress}`} className="text-2xl font-bold hover:underline mb-2 block">{campaign.campaignTitle}</Link>
                     {campaign.campaignState === 0 && <div>
-                        <p className="mb-2">Fundraising</p>
+                        <p className="mb-1">Fundraising</p>
                         <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
                         <p><CountdownTimer targetDate={campaign.campaignEnd as unknown as bigint} /></p>
                     </div>}
                     {campaign.campaignState === 1 && <div>
-                        <p className="mb-2">Vesting</p>
+                        <p className="mb-1">Vesting</p>
                         <div className="mt-2">
                             <ProgressBar
                                 current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n}
