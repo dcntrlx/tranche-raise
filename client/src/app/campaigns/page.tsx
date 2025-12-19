@@ -79,42 +79,50 @@ export default function Campaigns() {
 
     return (
         <div>
-            <nav>
-                <Link href="/">Home</Link>
-            </nav>
-            <ConnectButton showBalance={true} />
-            <h1 className="text-4xl font-bold mb-8">Active campaigns</h1>
-            {campaignsData?.map((campaign) => (
-                <li className="mb-10">
-                    <Link key={campaign.campaignAddress} href={`campaigns/${campaign.campaignAddress}`} className="text-2xl font-bold hover:underline mb-2 block">{campaign.campaignTitle}</Link>
-                    {campaign.campaignState === 0 && <div>
-                        <p className="mb-1">Fundraising</p>
-                        <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
-                        <p><CountdownTimer targetDate={campaign.campaignEnd as unknown as bigint} /></p>
-                    </div>}
-                    {campaign.campaignState === 1 && <div>
-                        <p className="mb-1">Vesting</p>
-                        <div className="mt-2">
-                            <ProgressBar
-                                current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n}
-                                total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n}
-                                variant="blue"
-                                overlayCurrent={campaign.campaignDistributed ? BigInt(campaign.campaignDistributed as unknown as bigint) : 0n}
-                                overlayVariant="gold"
-                                label="Distribution"
-                            />
-                        </div>
-                    </div>}
-                    {campaign.campaignState === 2 && <div>
-                        <p>Finished</p>
-                        <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Total Raised" />
-                    </div>}
-                    {campaign.campaignState === 3 && <div>
-                        <p>rejected</p>
-                        <p>goal: {campaign.campaignGoal ? formatEther(campaign.campaignGoal as bigint) : '0'} ETH</p>
-                    </div>}
-                </li>
-            ))}
+            <div className="flex justify-between items-center mb-10 pt-4">
+                <div className="flex items-center gap-6">
+                    <h1 className="text-4xl font-bold">Active campaigns</h1>
+                    <nav>
+                        <Link href="/" className="px-4 py-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors inline-block">
+                            Home
+                        </Link>
+                    </nav>
+                </div>
+                <ConnectButton showBalance={true} />
+            </div>
+            {
+                campaignsData?.map((campaign) => (
+                    <li className="mb-10">
+                        <Link key={campaign.campaignAddress} href={`campaigns/${campaign.campaignAddress}`} className="text-2xl font-bold hover:underline mb-2 block">{campaign.campaignTitle}</Link>
+                        {campaign.campaignState === 0 && <div>
+                            <p className="mb-1">Fundraising</p>
+                            <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
+                            <p><CountdownTimer targetDate={campaign.campaignEnd as unknown as bigint} /></p>
+                        </div>}
+                        {campaign.campaignState === 1 && <div>
+                            <p className="mb-1">Vesting</p>
+                            <div className="mt-2">
+                                <ProgressBar
+                                    current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n}
+                                    total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n}
+                                    variant="blue"
+                                    overlayCurrent={campaign.campaignDistributed ? BigInt(campaign.campaignDistributed as unknown as bigint) : 0n}
+                                    overlayVariant="gold"
+                                    label="Distribution"
+                                />
+                            </div>
+                        </div>}
+                        {campaign.campaignState === 2 && <div>
+                            <p>Finished</p>
+                            <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Total Raised" />
+                        </div>}
+                        {campaign.campaignState === 3 && <div>
+                            <p>rejected</p>
+                            <p>goal: {campaign.campaignGoal ? formatEther(campaign.campaignGoal as bigint) : '0'} ETH</p>
+                        </div>}
+                    </li>
+                ))
+            }
         </div>
     )
 }

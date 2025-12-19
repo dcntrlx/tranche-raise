@@ -24,11 +24,17 @@ export default function Home() {
   }
   return (
     <div>
-      <nav>
-        <Link href="/campaigns">Campaigns</Link>
-      </nav>
-      <ConnectButton showBalance={true} />
-      <h1>Tranche Raise</h1>
+      <div className="flex justify-between items-center mb-8 pt-4">
+        <div className="flex items-center gap-6">
+          <h1 className="text-4xl font-bold">Tranche Raise</h1>
+          <nav>
+            <Link href="/campaigns" className="px-4 py-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors inline-block">
+              Campaigns
+            </Link>
+          </nav>
+        </div>
+        <ConnectButton showBalance={true} />
+      </div>
       <p>Tranche Raise is a platform for raising funds for campaigns</p>
       <p>{`Connected address: ${address}` || 'Not connected'}</p>
       {address && <button className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors" onClick={() => setIsCreating(true)}>Create Campaign</button>}

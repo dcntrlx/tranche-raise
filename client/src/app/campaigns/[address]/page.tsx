@@ -119,12 +119,20 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
 
     return (
         <div>
-            <nav>
-                <Link href="/">Home</Link>
-                <Link href="/campaigns">Campaigns</Link>
-            </nav>
-            <ConnectButton showBalance={true} />
-            <h2 className="text-xl font-bold">Campaign: {campaignTitle}</h2>
+            <div className="flex justify-between items-center mb-8 pt-4">
+                <div className="flex items-center gap-6">
+                    <h2 className="text-xl font-bold">Campaign: {campaignTitle}</h2>
+                    <nav className="flex gap-4">
+                        <Link href="/" className="px-4 py-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors inline-block">
+                            Home
+                        </Link>
+                        <Link href="/campaigns" className="px-4 py-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors inline-block">
+                            Campaigns
+                        </Link>
+                    </nav>
+                </div>
+                <ConnectButton showBalance={true} />
+            </div>
             <p>Goal: {formatEther(campaignGoal)}</p>
             <p>Duration: {campaignDuration}</p>
             <p>Start: {campaignStart ? (new Date(Number(campaignStart) * 1000)).toLocaleString() : 'N/A'}</p>
