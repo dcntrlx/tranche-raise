@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { formatEther } from "viem";
 import { CountdownTimer } from "../components/CountdownTimer";
+import { ProgressBar } from "../components/ProgressBar";
 
 export default function Campaigns() {
     const { address } = useAccount();
@@ -87,21 +88,20 @@ export default function Campaigns() {
                 <li>
                     <Link key={campaign.campaignAddress} href={`campaigns/${campaign.campaignAddress}`}>{campaign.campaignTitle}</Link>
                     {campaign.campaignState === 0 && <div>
-                        <p>fundraising</p>
-                        <p>goal: {campaign.campaignGoal ? formatEther(campaign.campaignGoal as bigint) : '0'} ETH</p>
-                        <p>raised: {campaign.campaignRaised ? formatEther(campaign.campaignRaised as bigint) : '0'} ETH</p>
+                        <p className="mb-2">Fundraising</p>
+                        <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
                         <p>ends: {(new Date(Number(campaign.campaignEnd) * 1000)).toLocaleString()} {campaign.campaignEnd && (<CountdownTimer targetDate={campaign.campaignEnd} />)}</p>
                     </div>}
                     {campaign.campaignState === 1 && <div>
-                        <p>vesting</p>
-                        <p>raised: {campaign.campaignRaised ? formatEther(campaign.campaignRaised as bigint) : '0'} ETH</p>
-                        <p>goal: {campaign.campaignGoal ? formatEther(campaign.campaignGoal as bigint) : '0'} ETH</p>
-                        <p>distributed: {campaign.campaignDistributed ? formatEther(campaign.campaignDistributed as bigint) : '0'} ETH</p>
+                        <p className="mb-2">Vesting</p>
+                        <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
+                        <div className="mt-2">
+                            <ProgressBar current={campaign.campaignDistributed ? BigInt(campaign.campaignDistributed as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="gold" label="Distributed" />
+                        </div>
                     </div>}
                     {campaign.campaignState === 2 && <div>
-                        <p>finished</p>
-                        <p>raised: {campaign.campaignRaised ? formatEther(campaign.campaignRaised as bigint) : '0'} ETH</p>
-                        <p>goal: {campaign.campaignGoal ? formatEther(campaign.campaignGoal as bigint) : '0'} ETH</p>
+                        <p>Finished</p>
+                        <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Total Raised" />
                     </div>}
                     {campaign.campaignState === 3 && <div>
                         <p>rejected</p>

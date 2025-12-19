@@ -8,7 +8,9 @@ import { useAccount } from "wagmi";
 import { CAMPAIGN_ABI } from "../../contracts";
 import Link from "next/link";
 import { formatEther, parseEther, parseUnits } from "viem"
+
 import { CountdownTimer } from "../../components/CountdownTimer";
+import { ProgressBar } from "../../components/ProgressBar";
 
 export default function CampaignDetails({ params }: { params: Promise<{ address: string }> }) {
     const campaignAddress = (use(params)).address as `0x${string}`;
@@ -125,20 +127,20 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
             <h2 className="text-xl font-bold">Campaign: {campaignTitle}</h2>
             <p>Goal: {formatEther(campaignGoal)}</p>
             <p>Duration: {campaignDuration}</p>
-            <p>Start: {(new Date(Number(campaignStart) * 1000)).toLocaleString()}</p>
-            <p>End: {(new Date(Number(campaignEnd) * 1000)).toLocaleString()} {isFundraising && <span className="ml-2">(<CountdownTimer targetDate={campaignEnd} />)</span>}</p>
+            <p>Start: {campaignStart ? (new Date(Number(campaignStart) * 1000)).toLocaleString() : 'N/A'}</p>
+            <p>End: {campaignEnd ? (new Date(Number(campaignEnd) * 1000)).toLocaleString() : 'N/A'} {isFundraising && campaignEnd && <span className="ml-2">(<CountdownTimer targetDate={campaignEnd as bigint} />)</span>}</p>
             <p>Owner: {owner}</p>
             <p>totalDistributed: {totalDistributed ? formatEther(totalDistributed as bigint) : "0"} ETH</p>
             <p>totalRaised: {totalRaised ? formatEther(totalRaised as bigint) : "0"} ETH</p>
             {isFundraising && <div>
-                <h2 className="text-xl font-bold">Fundraising</h2>
-                <h3 className="text-lg font-bold">Raised: {totalRaised ? formatEther(totalRaised as bigint) : "0"}/{campaignGoal ? formatEther(campaignGoal as bigint) : "0"} ETH</h3>
+                <h2 className="text-xl font-bold mb-2">Fundraising</h2>
+                <ProgressBar current={totalRaised ? BigInt(totalRaised as unknown as bigint) : 0n} total={campaignGoal ? BigInt(campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
                 <input placeholder="Enter summ(ETH)" value={value} onChange={(e) => setValue(e.target.value)} />
                 <button className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors mt-2" onClick={fund}>Fund</button>
             </div>}
             {isVesting && <div>
-                <h2 className="text-xl font-bold">Vesting</h2>
-                <h3 className="text-lg font-bold">Distributed: {totalDistributed ? formatEther(totalDistributed as bigint) : "0"}/{campaignGoal ? formatEther(campaignGoal as bigint) : "0"} ETH</h3>
+                <h2 className="text-xl font-bold mb-2">Vesting</h2>
+                <ProgressBar current={totalDistributed ? BigInt(totalDistributed as unknown as bigint) : 0n} total={campaignGoal ? BigInt(campaignGoal as unknown as bigint) : 0n} variant="gold" label="Distributed" />
                 <h3 className="text-lg font-bold">Tranches panel</h3>
                 <ul>
                     {tranches.map((tranche, index) =>
