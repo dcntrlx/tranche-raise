@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import { CAMPAIGN_ABI } from "../../contracts";
 import Link from "next/link";
 import { formatEther, parseEther, parseUnits } from "viem"
+import { CountdownTimer } from "../../components/CountdownTimer";
 
 export default function CampaignDetails({ params }: { params: Promise<{ address: string }> }) {
     const campaignAddress = (use(params)).address as `0x${string}`;
@@ -125,7 +126,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
             <p>Goal: {formatEther(campaignGoal)}</p>
             <p>Duration: {campaignDuration}</p>
             <p>Start: {(new Date(Number(campaignStart) * 1000)).toLocaleString()}</p>
-            <p>End: {(new Date(Number(campaignEnd) * 1000)).toLocaleString()}</p>
+            <p>End: {(new Date(Number(campaignEnd) * 1000)).toLocaleString()} {isFundraising && <span className="ml-2">(<CountdownTimer targetDate={campaignEnd} />)</span>}</p>
             <p>Owner: {owner}</p>
             <p>totalDistributed: {totalDistributed ? formatEther(totalDistributed as bigint) : "0"} ETH</p>
             <p>totalRaised: {totalRaised ? formatEther(totalRaised as bigint) : "0"} ETH</p>

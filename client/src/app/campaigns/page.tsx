@@ -5,6 +5,7 @@ import { CAMPAIGN_FACTORY_ADDRESS, CAMPAIGN_FACTORY_ABI, CAMPAIGN_ABI } from "..
 import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { formatEther } from "viem";
+import { CountdownTimer } from "../components/CountdownTimer";
 
 export default function Campaigns() {
     const { address } = useAccount();
@@ -89,7 +90,7 @@ export default function Campaigns() {
                         <p>fundraising</p>
                         <p>goal: {campaign.campaignGoal ? formatEther(campaign.campaignGoal as bigint) : '0'} ETH</p>
                         <p>raised: {campaign.campaignRaised ? formatEther(campaign.campaignRaised as bigint) : '0'} ETH</p>
-                        <p>ends: {(new Date(Number(campaign.campaignEnd) * 1000)).toLocaleString()}</p>
+                        <p>ends: {(new Date(Number(campaign.campaignEnd) * 1000)).toLocaleString()} {campaign.campaignEnd && (<CountdownTimer targetDate={campaign.campaignEnd} />)}</p>
                     </div>}
                     {campaign.campaignState === 1 && <div>
                         <p>vesting</p>
