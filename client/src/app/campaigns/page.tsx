@@ -86,7 +86,7 @@ export default function Campaigns() {
             <h1>Campaigns</h1>
             {campaignsData?.map((campaign) => (
                 <li>
-                    <Link key={campaign.campaignAddress} href={`campaigns/${campaign.campaignAddress}`}>{campaign.campaignTitle}</Link>
+                    <Link key={campaign.campaignAddress} href={`campaigns/${campaign.campaignAddress}`} className="text-2xl font-bold hover:underline mb-2 block">{campaign.campaignTitle}</Link>
                     {campaign.campaignState === 0 && <div>
                         <p className="mb-2">Fundraising</p>
                         <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
