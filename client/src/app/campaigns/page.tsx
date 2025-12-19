@@ -90,13 +90,19 @@ export default function Campaigns() {
                     {campaign.campaignState === 0 && <div>
                         <p className="mb-2">Fundraising</p>
                         <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
-                        <p>ends: {(new Date(Number(campaign.campaignEnd) * 1000)).toLocaleString()} {campaign.campaignEnd && (<CountdownTimer targetDate={campaign.campaignEnd} />)}</p>
+                        <p><CountdownTimer targetDate={campaign.campaignEnd as unknown as bigint} /></p>
                     </div>}
                     {campaign.campaignState === 1 && <div>
                         <p className="mb-2">Vesting</p>
-                        <ProgressBar current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
                         <div className="mt-2">
-                            <ProgressBar current={campaign.campaignDistributed ? BigInt(campaign.campaignDistributed as unknown as bigint) : 0n} total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n} variant="gold" label="Distributed" />
+                            <ProgressBar
+                                current={campaign.campaignRaised ? BigInt(campaign.campaignRaised as unknown as bigint) : 0n}
+                                total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n}
+                                variant="blue"
+                                overlayCurrent={campaign.campaignDistributed ? BigInt(campaign.campaignDistributed as unknown as bigint) : 0n}
+                                overlayVariant="gold"
+                                label="Distribution"
+                            />
                         </div>
                     </div>}
                     {campaign.campaignState === 2 && <div>

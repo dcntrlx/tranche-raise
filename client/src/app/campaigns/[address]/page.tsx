@@ -140,7 +140,14 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
             </div>}
             {isVesting && <div>
                 <h2 className="text-xl font-bold mb-2">Vesting</h2>
-                <ProgressBar current={totalDistributed ? BigInt(totalDistributed as unknown as bigint) : 0n} total={campaignGoal ? BigInt(campaignGoal as unknown as bigint) : 0n} variant="gold" label="Distributed" />
+                <ProgressBar
+                    current={totalRaised ? BigInt(totalRaised as unknown as bigint) : 0n}
+                    total={campaignGoal ? BigInt(campaignGoal as unknown as bigint) : 0n}
+                    variant="blue"
+                    overlayCurrent={totalDistributed ? BigInt(totalDistributed as unknown as bigint) : 0n}
+                    overlayVariant="gold"
+                    label="Distribution Progress"
+                />
                 <h3 className="text-lg font-bold">Tranches panel</h3>
                 <ul>
                     {tranches.map((tranche, index) =>
