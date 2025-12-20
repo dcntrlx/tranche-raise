@@ -158,24 +158,41 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                         label="Distribution Progress"
                     />
                     <h3 className="text-lg font-bold">Tranches panel</h3>
-                    <ul>
+                    <div className="flex flex-col gap-4">
                         {tranches.map((tranche, index) =>
-                            <li key={tranche.trancheName}>
-                                <h4 className="text-lg font-bold">Tranche name: {tranche.trancheName}</h4>
-                                <p>Tranche recepient: {tranche.recepient}</p>
-                                <p>Tranche amount: {tranche.trancheAmount ? formatEther(tranche.trancheAmount as bigint) : "0"} ETH</p>
-                                {tranche.state === 1 && <div>
-                                    <p>Tranche votes for: {tranche.votesFor ? formatEther(tranche.votesFor as bigint) : "0"}</p>
-                                    <p>Tranche votes against: {tranche.votesAgainst ? formatEther(tranche.votesAgainst as bigint) : "0"}</p>
-                                    <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors mr-2" onClick={() => voteTranche(BigInt(index), true)}>Vote for</button>
-                                    <button className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors" onClick={() => voteTranche(BigInt(index), false)}>Vote against</button>
+                            <div key={tranche.trancheName} className="mb-4 bg-zinc-900 border border-zinc-800 p-6 rounded-xl hover:border-zinc-700 transition-colors">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h4 className="text-xl font-bold text-white mb-1">{tranche.trancheName}</h4>
+                                        <p className="text-sm text-zinc-500 font-mono">To: {tranche.recepient}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold border ${tranche.state === 1 ? 'bg-blue-900/30 text-blue-400 border-blue-800/50' :
+                                                tranche.state === 2 ? 'bg-green-900/30 text-green-400 border-green-800/50' :
+                                                    tranche.state === 3 ? 'bg-red-900/30 text-red-400 border-red-800/50' :
+                                                        'bg-zinc-800 text-zinc-400 border-zinc-700'
+                                            }`}>
+                                            {tranche.state === 1 ? "Voting" : tranche.state === 2 ? "Executed" : tranche.state === 3 ? "Rejected" : "Pending"}
+                                        </span>
+                                        <p className="font-bold text-white mt-2 text-lg">{tranche.trancheAmount ? formatEther(tranche.trancheAmount as bigint) : '0'} ETH</p>
+                                    </div>
                                 </div>
-                                }
-                                {tranche.state === 2 && <p>Tranche executed</p>}
-                                {tranche.state === 3 && <p>Tranche rejected</p>}
-                            </li>
+
+                                {tranche.state === 1 && <div className="mt-4 pt-4 border-t border-zinc-800">
+                                    <div className="flex justify-between text-sm text-zinc-400 mb-4">
+                                        <span>Votes For: <span className="text-green-400">{tranche.votesFor ? formatEther(tranche.votesFor as bigint) : "0"}</span></span>
+                                        <span>Votes Against: <span className="text-red-400">{tranche.votesAgainst ? formatEther(tranche.votesAgainst as bigint) : "0"}</span></span>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <button className="flex-1 bg-green-900/20 text-green-400 border border-green-900/50 px-4 py-2 rounded-lg hover:bg-green-900/40 transition-colors font-medium" onClick={() => voteTranche(BigInt(index), true)}>Vote For</button>
+                                        <button className="flex-1 bg-red-900/20 text-red-400 border border-red-900/50 px-4 py-2 rounded-lg hover:bg-red-900/40 transition-colors font-medium" onClick={() => voteTranche(BigInt(index), false)}>Vote Against</button>
+                                    </div>
+                                </div>}
+                                {tranche.state === 2 && <div className="mt-2 text-green-500 text-sm">Tranche executed successfully</div>}
+                                {tranche.state === 3 && <div className="mt-2 text-red-500 text-sm">Tranche rejected by community</div>}
+                            </div>
                         )}
-                    </ul>
+                    </div>
                     {address === owner && <div>
                         <input placeholder="Tranche title" value={trancheTitle} onChange={(e) => setTrancheTitle(e.target.value)} />
                         <input placeholder="Tranche goal" value={trancheGoal} onChange={(e) => setTrancheGoal(e.target.value)} />

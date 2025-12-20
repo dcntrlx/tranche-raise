@@ -47,9 +47,16 @@ contract CampaignTest is Test {
 
     /// @notice Test if it possible to withdraw during funding stage(after funding)
     function test_Withdraw_InFundraisingState() public {
-        uint256 amount = 10 ** 18;
+        address user = makeAddr("user");
+        vm.deal(user, 10 ether);
+        uint256 amount = 1 ether;
+
+        vm.startPrank(user);
         campaign.fund{value: amount}();
         campaign.withdraw(amount);
+        vm.stopPrank();
+
+        assertEq(user.balance, 10 ether);
     }
 
     /// @notice Test if it impossible to withdraw more than funded
@@ -105,39 +112,38 @@ contract CampaignTest is Test {
         vm.prank(owner);
         campaign.requestTranche("New Tranche", 10 ** 17, payable(owner));
         campaign.voteForTranche(0, false);
-        assertEq(campaign.getAllTranches()[0].votesAgainst, 10 ** 18); // 10 ether is 10^19 wei? No 10 ether is 10 * 10^18. Ah, `amount` in `test_FundInFundraisingState` was 10**18. Here we fund 10 ether = 10 * 10^18.
-        // Wait, 10 ether is 10 * 10^18.
-        // In voteForTranche: `tranche.votesAgainst += backersRaises[msg.sender];`
-        // msg.sender funds 10 ether.
-        // votesAgainst should be 10 * 10^18 = 10^19.
-        // 10 ** 18 is 1 ether.
         assertEq(campaign.getAllTranches()[0].votesAgainst, 10 ether);
         assertEq(uint256(campaign.getAllTranches()[0].state), uint256(Campaign.TrancheState.Failed));
     }
 
     /// @notice Test if double voting reverts
     function testRevert_DoubleVoting() public {
-        campaign.fund{value: 1 ether}();
+        // Owner funds 4 ether
+        campaign.fund{value: 4 ether}();
+
+        // Other user funds 6 ether to reach goal (10) but keep owner < 50%
+        address other = makeAddr("other");
+        vm.deal(other, 6 ether);
+        vm.prank(other);
+        campaign.fund{value: 6 ether}();
+
         vm.prank(owner);
         campaign.requestTranche("Tranche", 0.5 ether, payable(owner));
 
+        vm.prank(owner);
         campaign.voteForTranche(0, true);
 
+        // Verify still in voting
+        assertTrue(campaign.getAllTranches()[0].state == Campaign.TrancheState.Voting);
+
+        vm.prank(owner);
         vm.expectRevert("You have already voted for this tranche");
         campaign.voteForTranche(0, true);
     }
 
     /// @notice Test if requesting tranche with insufficient funds reverts
     function testRevert_RequestTranche_InsufficientFunds() public {
-        campaign.fund{value: 5 ether}(); // Total raised 5
-
-        // requestTranche checks: _trancheAmount <= totalRaised - totalDistributed
-        // request 6 ether
-
-        // First need to be in Distributing state.
-        // To be in distributing, totalRaised >= CAMPAIGN_GOAL (10 ether).
-        // So we must fund 10 ether first.
-        campaign.fund{value: 5 ether}(); // Total 10 ether.
+        campaign.fund{value: 10 ether}(); // Fund to reach Distributing
 
         vm.prank(owner);
         vm.expectRevert("Not enough funds left to tranche");
@@ -146,7 +152,7 @@ contract CampaignTest is Test {
 
     /// @notice Test refund functionality when campaign fails
     function test_Refund_CampaignFailed() public {
-        address backer = address(0xB);
+        address backer = makeAddr("backer");
         vm.deal(backer, 5 ether);
 
         vm.startPrank(backer);
