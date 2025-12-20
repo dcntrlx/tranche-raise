@@ -38,7 +38,7 @@ export default function Home() {
       <p>Tranche Raise is a platform for raising funds for campaigns</p>
       <p>{`Connected address: ${address}` || 'Not connected'}</p>
       {address && <button className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors" onClick={() => setIsCreating(true)}>Create Campaign</button>}
-      {isCreating && <CreateCampaign onCreate={onCreate} />}
+      {isCreating && <CreateCampaign onCreate={onCreate} onCancel={() => setIsCreating(false)} />}
       {isSuccess && <p>Campaign created successfully</p>}
     </div>
   );
