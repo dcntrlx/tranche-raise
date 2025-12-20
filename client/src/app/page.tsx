@@ -35,8 +35,7 @@ export default function Home() {
         </div>
         <ConnectButton showBalance={true} />
       </div>
-      <p>Tranche Raise is a platform for raising funds for campaigns</p>
-      <p>{`Connected address: ${address}` || 'Not connected'}</p>
+      <p>Tranche Raise is a platform for raising funds for campaigns and their future distribution during the campaign's vesting period where all decisions are made by backers</p>
       {address && <button className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors" onClick={() => setIsCreating(true)}>Create Campaign</button>}
       {isCreating && <CreateCampaign onCreate={onCreate} onCancel={() => setIsCreating(false)} />}
       {isSuccess && <p>Campaign created successfully</p>}
