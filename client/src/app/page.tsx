@@ -24,7 +24,7 @@ export default function Home() {
   }
   return (
     <div>
-      <div className="flex justify-between items-center mb-8 pt-4">
+      <div className="flex justify-between items-center mb-8 pt-4 px-4">
         <div className="flex items-center gap-6">
           <h1 className="text-4xl font-bold">Tranche Raise</h1>
           <nav>
