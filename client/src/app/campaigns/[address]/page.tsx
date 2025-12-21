@@ -222,12 +222,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                             </div>
                         )}
                     </div>
-                    {address === owner && <div>
-                        <input placeholder="Tranche title" value={trancheTitle} onChange={(e) => setTrancheTitle(e.target.value)} />
-                        <input placeholder="Tranche goal" value={trancheGoal} onChange={(e) => setTrancheGoal(e.target.value)} />
-                        <input placeholder="Tranche recepient" value={trancheRecepient} onChange={(e) => setTrancheRecepient(e.target.value)} />
-                        <button className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors mt-2" onClick={createTranche}>Create Tranche</button>
-                    </div>}
+
                 </div>}
                 {isFinished && <div>
                     <h2 className="text-xl font-bold">Campaign finished</h2>
@@ -235,8 +230,31 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                 {isRejected && <div>
                     <h2 className="text-xl font-bold">Campaign rejected</h2>
                 </div>}
-                {address === owner && <div>
-                    <h2 className="text-xl font-bold">Campaign Manager Panel</h2>
+                {address === owner && <div className="mt-12 pt-8 border-t border-zinc-800">
+                    <h2 className="text-xl font-bold mb-6">Campaign Manager Panel</h2>
+
+                    {isVesting && <div className="bg-zinc-900 p-6 rounded-xl border border-zinc-800 max-w-2xl">
+                        <h3 className="text-lg font-bold mb-4 text-white">Create New Tranche</h3>
+                        <div className="flex flex-col gap-4">
+                            <div>
+                                <label className="text-xs text-zinc-500 uppercase font-bold mb-1 block">Title</label>
+                                <input className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors" placeholder="e.g. Marketing Phase 1" value={trancheTitle} onChange={(e) => setTrancheTitle(e.target.value)} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs text-zinc-500 uppercase font-bold mb-1 block">Amount (ETH)</label>
+                                    <input className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors" placeholder="0.0" value={trancheGoal} onChange={(e) => setTrancheGoal(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-zinc-500 uppercase font-bold mb-1 block">Recipient Address</label>
+                                    <input className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors" placeholder="0x..." value={trancheRecepient} onChange={(e) => setTrancheRecepient(e.target.value)} />
+                                </div>
+                            </div>
+                            <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 mt-2" onClick={createTranche}>
+                                Create Tranche Request
+                            </button>
+                        </div>
+                    </div>}
                 </div>}
             </div>
         </div>
