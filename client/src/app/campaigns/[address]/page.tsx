@@ -134,27 +134,56 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                 <ConnectButton showBalance={true} />
             </div>
             <div className="px-[3%]">
-                <p>Goal: {formatEther(campaignGoal)}</p>
-                <p>Duration: {campaignDuration}</p>
-                <p>Start: {campaignStart ? (new Date(Number(campaignStart) * 1000)).toLocaleString() : 'N/A'}</p>
-                <p>End: {campaignEnd ? (new Date(Number(campaignEnd) * 1000)).toLocaleString() : 'N/A'} {isFundraising && campaignEnd && <span className="ml-2">(<CountdownTimer targetDate={campaignEnd as bigint} />)</span>}</p>
-                <p>Owner: {owner}</p>
-                <p>totalDistributed: {totalDistributed ? formatEther(totalDistributed as bigint) : "0"} ETH</p>
-                <p>totalRaised: {totalRaised ? formatEther(totalRaised as bigint) : "0"} ETH</p>
+                <div className="flex flex-wrap gap-x-12 gap-y-4 mb-8 pb-8 border-b border-zinc-800 items-baseline">
+                    <div>
+                        <span className="text-zinc-500 mr-2">Goal</span>
+                        <span className="text-xl font-bold text-white">{formatEther(campaignGoal)} ETH</span>
+                    </div>
+                    <div>
+                        <span className="text-zinc-500 mr-2">Raised</span>
+                        <span className="text-xl font-bold text-white">{totalRaised ? formatEther(totalRaised as bigint) : "0"} ETH</span>
+                    </div>
+                    <div>
+                        <span className="text-zinc-500 mr-2">Distributed</span>
+                        <span className="text-xl font-bold text-white">{totalDistributed ? formatEther(totalDistributed as bigint) : "0"} ETH</span>
+                    </div>
+                    <div>
+                        <span className="text-zinc-500 mr-2">Duration</span>
+                        <span className="text-xl font-bold text-white">{(Number(campaignDuration) / 86400).toFixed(0)} Days</span>
+                    </div>
+                    <div>
+                        <span className="text-zinc-500 mr-2">Start</span>
+                        <span className="text-white font-medium">{campaignStart ? (new Date(Number(campaignStart) * 1000)).toLocaleDateString() : 'N/A'}</span>
+                    </div>
+                    <div>
+                        <span className="text-zinc-500 mr-2">End</span>
+                        <span className="text-white font-medium">{campaignEnd ? (new Date(Number(campaignEnd) * 1000)).toLocaleDateString() : 'N/A'}</span>
+                        {isFundraising && campaignEnd && <span className="ml-2 text-blue-400 font-mono text-sm"><CountdownTimer targetDate={campaignEnd as bigint} /></span>}
+                    </div>
+                    <div>
+                        <span className="text-zinc-500 mr-2">Owner</span>
+                        <span className="font-mono text-zinc-400 text-sm">{(owner as string)?.slice(0, 6)}...{(owner as string)?.slice(-4)}</span>
+                    </div>
+                </div>
+
                 {isFundraising && <div>
                     <h2 className="text-xl font-bold mb-2">Fundraising</h2>
                     <ProgressBar current={totalRaised ? BigInt(totalRaised as unknown as bigint) : 0n} total={campaignGoal ? BigInt(campaignGoal as unknown as bigint) : 0n} variant="blue" label="Raised" />
-                    <input placeholder="Enter summ(ETH)" value={value} onChange={(e) => setValue(e.target.value)} />
-                    <button className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors mt-2" onClick={fund}>Fund</button>
+                    <div className="flex gap-2 mt-4 max-w-md">
+                        <input className="bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-white flex-1" placeholder="Amount (ETH)" value={value} onChange={(e) => setValue(e.target.value)} />
+                        <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-500 transition-colors font-bold" onClick={fund}>Fund</button>
+                    </div>
                 </div>}
+
                 {isVesting && <div>
-                    <h2 className="text-xl font-bold mb-2">Vesting</h2>
+                    <div className="flex items-center gap-4 mb-2">
+                        <h2 className="text-xl font-bold">Vesting Status</h2>
+                        <span className="px-3 py-1 bg-amber-900/30 text-amber-400 text-xs font-bold rounded-full border border-amber-800/50">ACTIVE</span>
+                    </div>
                     <ProgressBar
-                        current={totalRaised ? BigInt(totalRaised as unknown as bigint) : 0n}
-                        total={campaignGoal ? BigInt(campaignGoal as unknown as bigint) : 0n}
-                        variant="blue"
-                        overlayCurrent={totalDistributed ? BigInt(totalDistributed as unknown as bigint) : 0n}
-                        overlayVariant="gold"
+                        current={totalDistributed ? BigInt(totalDistributed as unknown as bigint) : 0n}
+                        total={totalRaised ? BigInt(totalRaised as unknown as bigint) : 0n}
+                        variant="gold"
                         label="Distribution Progress"
                     />
                     <h3 className="text-lg font-bold">Tranches panel</h3>
@@ -168,9 +197,9 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                                     </div>
                                     <div className="text-right">
                                         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold border ${tranche.state === 1 ? 'bg-blue-900/30 text-blue-400 border-blue-800/50' :
-                                                tranche.state === 2 ? 'bg-green-900/30 text-green-400 border-green-800/50' :
-                                                    tranche.state === 3 ? 'bg-red-900/30 text-red-400 border-red-800/50' :
-                                                        'bg-zinc-800 text-zinc-400 border-zinc-700'
+                                            tranche.state === 2 ? 'bg-green-900/30 text-green-400 border-green-800/50' :
+                                                tranche.state === 3 ? 'bg-red-900/30 text-red-400 border-red-800/50' :
+                                                    'bg-zinc-800 text-zinc-400 border-zinc-700'
                                             }`}>
                                             {tranche.state === 1 ? "Voting" : tranche.state === 2 ? "Executed" : tranche.state === 3 ? "Rejected" : "Pending"}
                                         </span>
