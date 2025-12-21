@@ -173,4 +173,51 @@ contract CampaignTest is Test {
         assertEq(campaign.backersRaises(backer), 0);
         vm.stopPrank();
     }
+
+    /// @notice Test if refund reverts when campaign is not failed
+    function testRevert_Refund_BeforeFail() public {
+        address backer = makeAddr("backer");
+        vm.deal(backer, 1 ether);
+        vm.prank(backer);
+        campaign.fund{value: 1 ether}();
+
+        vm.prank(backer);
+        vm.expectRevert("Current state does not allow this action");
+        campaign.refund();
+    }
+
+    /// @notice Test exact boundary transition to Distributing
+    function test_DistributingState_Boundary() public {
+        // Goal is 10 ether. Fund exactly 10 ether.
+        campaign.fund{value: 10 ether}();
+        // Should be Distributing immediately
+        assertTrue(campaign.state() == Campaign.CampaignState.Distributing);
+
+        // If we fund 9.99 ether it should still be Fundraising (assuming time hasn't passed)
+        // New campaign for isolation
+        Campaign c2 = new Campaign("C2", 10 ether, 1 days, owner);
+        c2.fund{value: 9.99 ether}();
+        assertTrue(c2.state() == Campaign.CampaignState.Fundraising);
+    }
+
+    /// @notice Test that executing a tranche actually moves ETH to recipient
+    function test_TrancheExecution_TransfersEther() public {
+        campaign.fund{value: 10 ether}();
+
+        address payable recipient = payable(makeAddr("recipient"));
+        uint256 trancheAmount = 1 ether;
+
+        vm.prank(owner);
+        campaign.requestTranche("Payroll", trancheAmount, recipient);
+
+        uint256 balanceBefore = recipient.balance;
+
+        // Vote to pass
+        campaign.voteForTranche(0, true);
+
+        uint256 balanceAfter = recipient.balance;
+
+        assertEq(balanceAfter - balanceBefore, trancheAmount);
+        assertEq(campaign.totalDistributed(), trancheAmount);
+    }
 }

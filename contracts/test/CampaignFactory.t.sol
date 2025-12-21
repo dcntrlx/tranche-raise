@@ -26,4 +26,24 @@ contract CampaignFactoryTest is Test {
         assertEq(Campaign(campaigns[0]).CAMPAIGN_GOAL(), campaignGoal);
         assertEq(Campaign(campaigns[0]).CAMPAIGN_DURATION(), campaignDuration);
     }
+
+    function test_CreateMultipleCampaigns() public {
+        campaignFactory.createCampaign("Campaign 1", 100, 1000);
+        campaignFactory.createCampaign("Campaign 2", 200, 2000);
+
+        address[] memory campaigns = campaignFactory.getAllCampaigns();
+        assertEq(campaigns.length, 2);
+        assertEq(Campaign(campaigns[0]).campaignTitle(), "Campaign 1");
+        assertEq(Campaign(campaigns[1]).campaignTitle(), "Campaign 2");
+        assertTrue(campaigns[0] != campaigns[1]);
+    }
+
+    function test_CampaignOwnership() public {
+        address creator = makeAddr("creator");
+        vm.prank(creator);
+        campaignFactory.createCampaign("My Campaign", 100, 1000);
+
+        address[] memory campaigns = campaignFactory.getAllCampaigns();
+        assertEq(Campaign(campaigns[0]).OWNER(), creator);
+    }
 }
