@@ -5,6 +5,7 @@ pragma solidity ^0.8.24;
 import {Test} from "forge-std/Test.sol";
 import {Campaign} from "../src/Campaign.sol";
 import {console} from "forge-std/console.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
 contract CampaignTest is Test {
     address public owner;
@@ -12,13 +13,17 @@ contract CampaignTest is Test {
     uint256 campaignGoal;
     uint256 campaignDuration;
     uint256 campaignStart;
+    Campaign implementation;
 
     function setUp() public {
         owner = makeAddr("owner");
         campaignGoal = 10 ether;
         campaignDuration = 7 days;
         campaignStart = block.timestamp;
-        campaign = new Campaign("Test Campaign", campaignGoal, campaignDuration, owner);
+
+        implementation = new Campaign();
+        campaign = Campaign(Clones.clone(address(implementation)));
+        campaign.initialize("Test Campaign", "", campaignGoal, campaignDuration, owner);
     }
 
     /// @notice Tests that the campaign is active after start
@@ -53,18 +58,16 @@ contract CampaignTest is Test {
 
         vm.startPrank(user);
         campaign.fund{value: amount}();
-        campaign.withdraw(amount);
+        campaign.revokeFunds();
         vm.stopPrank();
 
         assertEq(user.balance, 10 ether);
     }
 
-    /// @notice Test if it impossible to withdraw more than funded
-    function test_Withdraw_Revert_InFundraisingStateWithoutFunding() public {
-        uint256 amount = 10 ** 18;
-        campaign.fund{value: amount}();
-        vm.expectRevert("You havent raised this much");
-        campaign.withdraw(2 * amount);
+    /// @notice Test if it impossible to revoke without funding
+    function test_Revoke_Revert_WithoutFunding() public {
+        vm.expectRevert("No funds to revoke");
+        campaign.revokeFunds();
     }
 
     /// @notice Test if it possible for owner to request a tranche during distributing stage
@@ -195,7 +198,8 @@ contract CampaignTest is Test {
 
         // If we fund 9.99 ether it should still be Fundraising (assuming time hasn't passed)
         // New campaign for isolation
-        Campaign c2 = new Campaign("C2", 10 ether, 1 days, owner);
+        Campaign c2 = Campaign(Clones.clone(address(implementation)));
+        c2.initialize("C2", "", 10 ether, 1 days, owner);
         c2.fund{value: 9.99 ether}();
         assertTrue(c2.state() == Campaign.CampaignState.Fundraising);
     }
@@ -219,5 +223,50 @@ contract CampaignTest is Test {
 
         assertEq(balanceAfter - balanceBefore, trancheAmount);
         assertEq(campaign.totalDistributed(), trancheAmount);
+    }
+
+    /// @notice Test if cancellation voting works and allows proportional refund
+    function test_VoteToCancel_TriggersRefund() public {
+        // Goal 10 ETH. 4 investors fund 2.5 ETH each.
+        address[4] memory users;
+        for (uint i = 0; i < 4; i++) {
+            users[i] = makeAddr(string(abi.encodePacked("user", i)));
+            vm.deal(users[i], 10 ether);
+            vm.prank(users[i]);
+            campaign.fund{value: 2.5 ether}();
+        }
+
+        // Project is in Distributing
+        assertTrue(campaign.state() == Campaign.CampaignState.Distributing);
+
+        // Owner requests 2 ETH
+        vm.prank(owner);
+        campaign.requestTranche("Tranche 1", 2 ether, payable(owner));
+        
+        // Two investors vote for it (2 * 2.5 = 5 ETH = 50% of 10)
+        vm.prank(users[0]);
+        campaign.voteForTranche(0, true);
+        vm.prank(users[1]);
+        campaign.voteForTranche(0, true);
+        
+        assertEq(address(campaign).balance, 8 ether);
+
+        // 3 users (7.5 ETH > 60% of 10) vote to cancel
+        for (uint i = 0; i < 3; i++) {
+            vm.prank(users[i]);
+            campaign.voteToCancel();
+        }
+
+        assertTrue(campaign.state() == Campaign.CampaignState.Failed);
+        assertTrue(campaign.isCancelled());
+
+        // Users reclaim proportional funds
+        // Initial investment 2.5. Remaining balance 8. Total raised 10.
+        // Expected refund = 2.5 * 8 / 10 = 2.0 ETH
+        uint256 balanceBefore = users[0].balance;
+        vm.prank(users[0]);
+        campaign.refund();
+        uint256 balanceAfter = users[0].balance;
+        assertEq(balanceAfter - balanceBefore, 2 ether);
     }
 }

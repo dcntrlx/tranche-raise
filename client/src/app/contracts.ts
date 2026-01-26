@@ -1,9 +1,31 @@
-export const CAMPAIGN_FACTORY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+export const CAMPAIGN_FACTORY_ADDRESSES: Record<number, `0x${string}`> = {
+    31337: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_31337 as `0x${string}`) || "0x5fbdb2315678afecb367f032d93f642f64180aa3", // Foundry
+    42161: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_42161 as `0x${string}`) || "0xcaf0c4fde258cb8fb3b0766cd071bc4244f4ca50", // Arbitrum
+    421614: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_421614 as `0x${string}`), // Arbitrum Sepolia
+    8453: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_8453 as `0x${string}`), // Base
+    84532: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_84532 as `0x${string}`), // Base Sepolia
+    1329: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_1329 as `0x${string}`), // Sei
+    713715: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_713715 as `0x${string}`), // Sei Testnet
+};
+
 export const CAMPAIGN_FACTORY_ABI = [
     {
         "type": "constructor",
         "inputs": [],
         "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "campaignImplementation",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "stateMutability": "view"
     },
     {
         "type": "function",
@@ -34,6 +56,11 @@ export const CAMPAIGN_FACTORY_ABI = [
                 "internalType": "string"
             },
             {
+                "name": "_metadataCID",
+                "type": "string",
+                "internalType": "string"
+            },
+            {
                 "name": "_campaignGoal",
                 "type": "uint256",
                 "internalType": "uint256"
@@ -59,33 +86,34 @@ export const CAMPAIGN_FACTORY_ABI = [
             }
         ],
         "stateMutability": "view"
+    },
+    {
+        "type": "error",
+        "name": "FailedDeployment",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "InsufficientBalance",
+        "inputs": [
+            {
+                "name": "balance",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "needed",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ]
     }
 ] as const
+
 export const CAMPAIGN_ABI = [
     {
         "type": "constructor",
-        "inputs": [
-            {
-                "name": "_campaignTitle",
-                "type": "string",
-                "internalType": "string"
-            },
-            {
-                "name": "_campaignGoal",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "_campaignDuration",
-                "type": "uint256",
-                "internalType": "uint256"
-            },
-            {
-                "name": "_owner",
-                "type": "address",
-                "internalType": "address"
-            }
-        ],
+        "inputs": [],
         "stateMutability": "nonpayable"
     },
     {
@@ -123,6 +151,64 @@ export const CAMPAIGN_ABI = [
                 "name": "",
                 "type": "address",
                 "internalType": "address"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "isCancelled",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool",
+                "internalType": "bool"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "cancelledBalance",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "cancelVotes",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "votedToCancel",
+        "inputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool",
+                "internalType": "bool"
             }
         ],
         "stateMutability": "view"
@@ -206,10 +292,37 @@ export const CAMPAIGN_ABI = [
     },
     {
         "type": "function",
+        "name": "metadataCID",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "string",
+                "internalType": "string"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
         "name": "fund",
         "inputs": [],
         "outputs": [],
         "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "revokeFunds",
+        "inputs": [],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "voteToCancel",
+        "inputs": [],
+        "outputs": [],
+        "stateMutability": "nonpayable"
     },
     {
         "type": "function",
@@ -255,6 +368,39 @@ export const CAMPAIGN_ABI = [
             }
         ],
         "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "initialize",
+        "inputs": [
+            {
+                "name": "_campaignTitle",
+                "type": "string",
+                "internalType": "string"
+            },
+            {
+                "name": "_metadataCID",
+                "type": "string",
+                "internalType": "string"
+            },
+            {
+                "name": "_campaignGoal",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "_campaignDuration",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "_owner",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
     },
     {
         "type": "function",
@@ -369,6 +515,7 @@ export const CAMPAIGN_ABI = [
         ],
         "stateMutability": "view"
     },
+
     {
         "type": "function",
         "name": "voteForTranche",
@@ -388,16 +535,26 @@ export const CAMPAIGN_ABI = [
         "stateMutability": "nonpayable"
     },
     {
-        "type": "function",
-        "name": "withdraw",
+        "type": "event",
+        "name": "Initialized",
         "inputs": [
             {
-                "name": "amount",
-                "type": "uint256",
-                "internalType": "uint256"
+                "name": "version",
+                "type": "uint64",
+                "indexed": false,
+                "internalType": "uint64"
             }
         ],
-        "outputs": [],
-        "stateMutability": "nonpayable"
+        "anonymous": false
+    },
+    {
+        "type": "error",
+        "name": "InvalidInitialization",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "NotInitializing",
+        "inputs": []
     }
 ] as const

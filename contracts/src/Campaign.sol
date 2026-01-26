@@ -2,18 +2,22 @@
 
 pragma solidity ^0.8.24;
 
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
 /// @title Campaign
 /// @author dnctrlx
 /// @notice This contract represents a single campaign with state management
-contract Campaign {
+contract Campaign is Initializable {
     /// @dev Represents campaign owner. One of the values from constructor of campaign
-    address public immutable OWNER;
+    address public OWNER;
     /// @dev Represents campaign title. One of the values from constructor of campaign
     string public campaignTitle;
+    /// @dev Represents IPFS CID of campaign metadata
+    string public metadataCID;
     /// @dev Represents capmaign goal in wei. One of the values from constructor of campaign
-    uint256 public immutable CAMPAIGN_GOAL;
+    uint256 public CAMPAIGN_GOAL;
     /// @dev Represents capmaign duration in seconds. One of the values from constructor of campaign
-    uint256 public immutable CAMPAIGN_DURATION;
+    uint256 public CAMPAIGN_DURATION;
     /// @dev campaignStart is set to block.timestamp on campaign creation. Represents capmaign creation timestamp
     uint256 public campaignStart;
     /// @dev campaignEnd is calculated as campaignStart + CAMPAIGN_DURATION on campaign creation
@@ -68,15 +72,32 @@ contract Campaign {
     uint256 public totalRaised;
     /// @dev Total amount of distributed funds from backers
     uint256 public totalDistributed;
+    /// @dev Flag indicating if the campaign was cancelled by investors
+    bool public isCancelled;
+    /// @dev Snapshot of balance at cancellation for proportional refunds
+    uint256 public cancelledBalance;
+    /// @dev Total votes for campaign cancellation
+    uint256 public cancelVotes;
+    /// @dev Mapping to track who voted to cancel
+    mapping(address => bool) public votedToCancel;
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     modifier onlyOwner() {
         require(msg.sender == OWNER, "You are not an owner");
         _;
     }
 
-    constructor(string memory _campaignTitle, uint256 _campaignGoal, uint256 _campaignDuration, address _owner) {
+    function initialize(string memory _campaignTitle, string memory _metadataCID, uint256 _campaignGoal, uint256 _campaignDuration, address _owner)
+        public
+        initializer
+    {
         OWNER = _owner;
         campaignTitle = _campaignTitle;
+        metadataCID = _metadataCID;
         CAMPAIGN_GOAL = _campaignGoal;
         CAMPAIGN_DURATION = _campaignDuration;
         campaignStart = block.timestamp;
@@ -85,7 +106,16 @@ contract Campaign {
 
     /// @notice Calculates the current state of the campaign based on time and total raised
     /// @dev Uses CAMPAIGN_GOAL and CAMPAIGN_DURATION constants to determine the current state of the campaign
+    /// @notice Calculates the current state of the campaign based on time and total raised
+    /// @dev Uses CAMPAIGN_GOAL and CAMPAIGN_DURATION constants to determine the current state of the campaign
     function state() public view returns (CampaignState) {
+        if (isCancelled) return CampaignState.Failed;
+
+        // Automatic failure if 60% cancellation threshold is met
+        if (totalRaised > 0 && cancelVotes >= (totalRaised * 60) / 100) {
+            return CampaignState.Failed;
+        }
+
         if (block.timestamp < campaignEnd && totalRaised < CAMPAIGN_GOAL) {
             return CampaignState.Fundraising; // If campaign fundraising period is not over and goal is not reached, then company is fundraising
         }
@@ -132,25 +162,57 @@ contract Campaign {
         totalRaised += msg.value;
     }
 
-    /// @notice Function to withraw funds from campaign
-    /// @dev Withdraw is only possible during CampaignState.Fundraising state
-    function withdraw(uint256 amount) external onlyFundraising {
-        require(address(this).balance >= amount, "You havent raised this much");
+    /// @notice Allows backers to revoke their funds during fundraising
+    /// @dev Revoke is only possible during CampaignState.Fundraising state
+    function revokeFunds() external onlyFundraising {
+        uint256 amount = backersRaises[msg.sender];
+        require(amount > 0, "No funds to revoke");
+
+        backersRaises[msg.sender] = 0;
         totalRaised -= amount;
         (bool success,) = payable(msg.sender).call{value: amount}("");
-        require(success, "Withdrawal failed");
+        require(success, "Revoke failed");
     }
 
-    /// @notice Allows backers to get a refund if the campaign failed
+    /// @notice Allows backers to get a refund if the campaign failed or was cancelled
     /// @dev Refund is only possible if campaign is in CampaignState.Failed state
     function refund() external inState(CampaignState.Failed) {
         uint256 amount = backersRaises[msg.sender];
         require(amount > 0, "No funds to refund");
 
+        // If threshold met but flag not set, seal the cancellation state now
+        if (!isCancelled && cancelVotes >= (totalRaised * 60) / 100) {
+            isCancelled = true;
+            cancelledBalance = address(this).balance;
+        }
+
         backersRaises[msg.sender] = 0;
-        // totalRaised -= amount;   Omitting here to save gas. It will not break logic because we are not going to use this campaign anymore
-        (bool success,) = payable(msg.sender).call{value: amount}("");
+        
+        uint256 refundAmount = amount;
+        
+        // If cancelled, calculate proportional refund based on remaining balance
+        if (isCancelled && totalRaised > 0) {
+            refundAmount = (amount * cancelledBalance) / totalRaised;
+        }
+
+        (bool success,) = payable(msg.sender).call{value: refundAmount}("");
         require(success, "Refund failed");
+    }
+
+    /// @notice Allows investors to vote to cancel the campaign during vesting
+    /// @dev accessible only in Distributing state
+    function voteToCancel() external onlyDistributing {
+        require(backersRaises[msg.sender] > 0 || msg.sender == OWNER, "Only investors or owner can vote");
+        require(!votedToCancel[msg.sender], "Already voted to cancel");
+
+        votedToCancel[msg.sender] = true;
+        cancelVotes += backersRaises[msg.sender];
+
+        // Check if 60% threshold is reached
+        if (cancelVotes >= (totalRaised * 60) / 100) {
+            isCancelled = true;
+            cancelledBalance = address(this).balance;
+        }
     }
 
     /// @notice Function to request a tranche from the campaign

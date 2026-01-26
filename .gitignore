@@ -1,0 +1,26 @@
+CLAUDE.md
+
+# SSL certificates
+certbot/
+
+# Foundry deployment artifacts
+contracts/broadcast/
+
+# Generated files
+deployment_package.tar.gz
+nginx_temp.conf
+
+# IPFS metadata cache
+client/public/ipfs/
+
+# Deployment/debugging scripts
+*.py
+
+# Deployment configuration
+DEPLOY.md
+deploy.sh
+docker-compose.yml
+nginx/
+client/Dockerfile
+contracts/deploy_any.sh
+contracts/deploy_mainnet.sh

@@ -19,7 +19,7 @@ contract CampaignFactoryTest is Test {
         uint256 campaignGoal = 1000;
         uint256 campaignDuration = 100000;
         string memory campaignTitle = "Test Campaign";
-        campaignFactory.createCampaign(campaignTitle, campaignGoal, campaignDuration);
+        campaignFactory.createCampaign(campaignTitle, "", campaignGoal, campaignDuration);
         address[] memory campaigns = campaignFactory.getAllCampaigns();
         assertEq(campaigns.length, 1);
         assertEq(Campaign(campaigns[0]).campaignTitle(), campaignTitle);
@@ -28,8 +28,8 @@ contract CampaignFactoryTest is Test {
     }
 
     function test_CreateMultipleCampaigns() public {
-        campaignFactory.createCampaign("Campaign 1", 100, 1000);
-        campaignFactory.createCampaign("Campaign 2", 200, 2000);
+        campaignFactory.createCampaign("Campaign 1", "", 100, 1000);
+        campaignFactory.createCampaign("Campaign 2", "", 200, 2000);
 
         address[] memory campaigns = campaignFactory.getAllCampaigns();
         assertEq(campaigns.length, 2);
@@ -41,7 +41,7 @@ contract CampaignFactoryTest is Test {
     function test_CampaignOwnership() public {
         address creator = makeAddr("creator");
         vm.prank(creator);
-        campaignFactory.createCampaign("My Campaign", 100, 1000);
+        campaignFactory.createCampaign("My Campaign", "", 100, 1000);
 
         address[] memory campaigns = campaignFactory.getAllCampaigns();
         assertEq(Campaign(campaigns[0]).OWNER(), creator);
