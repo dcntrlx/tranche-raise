@@ -13,6 +13,7 @@ import { formatEther, parseEther } from "viem"
 import { CountdownTimer } from "../../components/CountdownTimer";
 import { ProgressBar } from "../../components/ProgressBar";
 import { NetworkBackground } from "../../components/NetworkBackground";
+import { useNativeToken } from "../../hooks/useNativeToken";
 
 export default function CampaignDetails({ params }: { params: Promise<{ address: string }> }) {
     const { address: addressStr } = use(params);
@@ -20,6 +21,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
 
     const { address } = useAccount();
     const queryClient = useQueryClient();
+    const tokenSymbol = useNativeToken();
 
     const { data: campaignData, isLoading: isLoadingCampaignData, refetch: refetchCampaignData } = useReadContracts({
         contracts: [
@@ -65,6 +67,8 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
     const isVesting = (campaignState === 1 || campaignState === 2) && !isCancelled && !thresholdMet;
     const isFinished = campaignState === 2 && !thresholdMet;
     const isRejected = campaignState === 3 || isCancelled || thresholdMet;
+    const isCancelledByCommunity = isCancelled || thresholdMet;
+    const isFailedByDeadline = isRejected && !isCancelledByCommunity;
 
     // Proportional refund is available if rejected and user has skin in the game
     const canClaimRefund = isRejected && (userInvestment as bigint || 0n) > 0n;
@@ -144,6 +148,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
             refetchCampaignData();
             refetchTranchesData();
             queryClient.invalidateQueries();
+            setValue('');
         }
     }, [isConfirmed, queryClient, refetchCampaignData, refetchTranchesData])
 
@@ -251,27 +256,15 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                         <section className="glass p-10 rounded-3xl space-y-8 border-white/5 relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500/50 to-blue-500/50 opacity-20" />
                             <div>
-                                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                                <h3 className="text-2xl font-bold text-white mb-6">
                                     Capital Flow
-                                    <span className="text-xs font-normal text-zinc-500 px-2 py-0.5 rounded-full border border-white/10">Live Analytics</span>
-                                    <button
-                                        onClick={() => {
-                                            refetchCampaignData();
-                                            refetchTranchesData();
-                                        }}
-                                        className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-600 hover:text-blue-400 transition-all active:rotate-180"
-                                        title="Refresh Data"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                                            <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.45a.75.75 0 000-1.5H4.5a.75.75 0 00-.75.75v3.75a.75.75 0 001.5 0v-2.109l.311.312a7 7 0 0011.707-4.914 1.25 1.25 0 00-2.5 0zM4.688 8.576a5.5 5.5 0 019.201-2.466l.312.311h-2.45a.75.75 0 000 1.5h3.75a.75.75 0 00.75-.75V3.5a.75.75 0 00-1.5 0v2.109l-.311-.312a7 7 0 00-11.707 4.914 1.25 1.25 0 002.5 0z" clipRule="evenodd" />
-                                        </svg>
-                                    </button>
                                 </h3>
                                 <ProgressBar
                                     current={totalRaised ? BigInt(totalRaised as unknown as bigint) : 0n}
                                     total={isFundraising ? (campaignGoal ? BigInt(campaignGoal as unknown as bigint) : 0n) : (totalRaised ? BigInt(totalRaised as unknown as bigint) : 0n)}
                                     variant="blue"
                                     label="Fundraising Progress"
+                                    tokenSymbol={tokenSymbol}
                                 />
                                 {isFundraising && campaignEnd && (
                                     <div className="flex items-center justify-between text-zinc-500 text-xs font-mono pt-4 border-t border-white/5">
@@ -287,6 +280,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                                     total={totalRaised ? BigInt(totalRaised as unknown as bigint) : 0n}
                                     variant="gold"
                                     label="Total Distribution to Project"
+                                    tokenSymbol={tokenSymbol}
                                 />
                             )}
 
@@ -316,19 +310,23 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                                 <div className="pt-6 border-t border-red-500/20 space-y-3">
                                     <div className="flex justify-between text-[10px] font-bold text-red-400 uppercase tracking-widest">
                                         <span>Project Status</span>
-                                        <span>Cancelled by Community</span>
+                                        <span>{isCancelledByCommunity ? "Cancelled by Community" : "Failed - Goal Not Reached"}</span>
                                     </div>
-                                    <div className="h-2 w-full bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
+                                    {isCancelledByCommunity && (
+                                        <div className="h-2 w-full bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
+                                    )}
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                         <p className="text-[10px] text-zinc-400 italic flex-grow">
-                                            Investors can now reclaim their proportional share of the remaining funds.
+                                            {isCancelledByCommunity
+                                                ? "Investors can now reclaim their proportional share of the remaining funds."
+                                                : "Campaign did not reach its funding goal before the deadline. All funds are returned to investors."}
                                         </p>
                                         {(userInvestment as bigint || 0n) > 0n && (
                                             <button
                                                 className="px-6 py-2.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 hover:text-green-300 border border-green-500/20 hover:border-green-500/40 font-bold text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(74,222,128,0.1)] active:scale-95 shrink-0 uppercase tracking-wide"
                                                 onClick={claimRefund}
                                             >
-                                                Revoke funds
+                                                Claim Refund
                                             </button>
                                         )}
                                     </div>
@@ -369,7 +367,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                                             </div>
                                             <div className="text-left md:text-right">
                                                 <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest block mb-1">Requested Amount</span>
-                                                <span className="text-3xl font-bold text-white tracking-tight">{tranche.trancheAmount ? formatEther(tranche.trancheAmount as bigint) : '0'} <span className="text-lg font-medium opacity-50 text-cyan-200">ETH</span></span>
+                                                <span className="text-3xl font-bold text-white tracking-tight">{tranche.trancheAmount ? formatEther(tranche.trancheAmount as bigint) : '0'} <span className="text-lg font-medium opacity-50 text-cyan-200">{tokenSymbol}</span></span>
                                             </div>
                                         </div>
 
@@ -451,7 +449,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                                 <div className="space-y-3 relative z-10">
                                     <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                                         <span>Contribution</span>
-                                        <span>ETH</span>
+                                        <span>{tokenSymbol}</span>
                                     </div>
                                     <div className="relative">
                                         <input
@@ -461,7 +459,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                                             onChange={(e) => setValue(e.target.value)}
                                         />
                                         <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
-                                            <span className="text-zinc-500 text-sm font-bold">ETH</span>
+                                            <span className="text-zinc-500 text-sm font-bold">{tokenSymbol}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -480,7 +478,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                                         className="w-full py-4 text-zinc-500 hover:text-red-400 text-sm font-bold rounded-2xl transition-all border border-white/5 hover:border-red-500/20 hover:bg-red-500/5 active:scale-95"
                                         onClick={revokeInvestment}
                                     >
-                                        Revoke My Investment ({formatEther(userInvestment as bigint)} ETH)
+                                        Revoke My Investment ({formatEther(userInvestment as bigint)} {tokenSymbol})
                                     </button>
                                 )}
                             </div>
@@ -500,7 +498,7 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block ml-1">Amount (ETH)</label>
+                                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block ml-1">Amount ({tokenSymbol})</label>
                                                     <input className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-zinc-700" placeholder="0.5" value={trancheGoal} onChange={(e) => setTrancheGoal(e.target.value)} />
                                                 </div>
                                                 <div>

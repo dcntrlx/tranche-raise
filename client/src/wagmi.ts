@@ -1,32 +1,17 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import {
     arbitrum,
-    arbitrumSepolia,
-    base,
-    baseSepolia,
-    foundry,
-    mainnet,
-    optimism,
-    optimismSepolia,
-    polygon,
-    polygonAmoy,
     sei,
-    seiTestnet,
 } from 'wagmi/chains';
+
+const seiWithIcon = {
+    ...sei,
+    iconUrl: '/sei-icon.png',
+};
 
 const chains = [
     arbitrum,
-    arbitrumSepolia,
-    base,
-    baseSepolia,
-    foundry,
-    mainnet,
-    optimism,
-    optimismSepolia,
-    polygon,
-    polygonAmoy,
-    sei,
-    seiTestnet,
+    seiWithIcon,
 ] as const;
 
 export const config = getDefaultConfig({

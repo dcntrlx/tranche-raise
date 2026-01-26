@@ -21,7 +21,12 @@ export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { writeContract, data: hash } = useWriteContract();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
@@ -106,19 +111,19 @@ export default function Home() {
             </Link>
 
             <div className="relative group/btn">
-              {!isConnected && showTooltip && (
+              {mounted && !isConnected && showTooltip && (
                 <div className="absolute -top-14 left-1/2 -translate-x-1/2 px-4 py-2 bg-zinc-800/90 backdrop-blur-md border border-zinc-700/50 rounded-xl text-zinc-100 text-sm font-medium whitespace-nowrap shadow-xl animate-in fade-in zoom-in slide-in-from-bottom-2 duration-200 z-50">
                   Connect wallet first
                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-800 border-r border-b border-zinc-700/50 rotate-45" />
                 </div>
               )}
               <button
-                className={`px-10 py-5 text-xl font-bold rounded-full transition-all active:scale-95 ${isConnected
+                className={`px-10 py-5 text-xl font-bold rounded-full transition-all active:scale-95 ${mounted && isConnected
                   ? "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] hover:scale-105"
                   : "bg-zinc-800/40 text-zinc-500 border border-zinc-700/50 cursor-not-allowed opacity-60 backdrop-blur-sm"
                   }`}
-                onClick={() => isConnected && setIsCreating(true)}
-                onMouseEnter={() => !isConnected && setShowTooltip(true)}
+                onClick={() => mounted && isConnected && setIsCreating(true)}
+                onMouseEnter={() => mounted && !isConnected && setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
               >
                 Start a Campaign

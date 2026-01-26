@@ -2,8 +2,19 @@
 
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
+import { useAccount } from "wagmi";
+import { useState, useEffect } from "react";
 
 export function CampaignsDropdown() {
+    const { address, isConnected } = useAccount();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const showUserCategories = mounted && isConnected && address;
+
     return (
         <div className="relative group z-50">
             <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all backdrop-blur-md cursor-default">
@@ -24,6 +35,17 @@ export function CampaignsDropdown() {
                 <Link href="/campaigns?status=failed" className="block px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 transition-colors">
                     Failed Campaigns
                 </Link>
+                {showUserCategories && (
+                    <>
+                        <div className="my-2 border-t border-zinc-700/50" />
+                        <Link href={`/campaigns?owner=${address}`} className="block px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 transition-colors">
+                            My Campaigns
+                        </Link>
+                        <Link href={`/campaigns?backer=${address}`} className="block px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 transition-colors">
+                            Backed Campaigns
+                        </Link>
+                    </>
+                )}
             </div>
         </div>
     );

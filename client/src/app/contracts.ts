@@ -1,11 +1,6 @@
 export const CAMPAIGN_FACTORY_ADDRESSES: Record<number, `0x${string}`> = {
-    31337: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_31337 as `0x${string}`) || "0x5fbdb2315678afecb367f032d93f642f64180aa3", // Foundry
     42161: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_42161 as `0x${string}`) || "0xcaf0c4fde258cb8fb3b0766cd071bc4244f4ca50", // Arbitrum
-    421614: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_421614 as `0x${string}`), // Arbitrum Sepolia
-    8453: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_8453 as `0x${string}`), // Base
-    84532: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_84532 as `0x${string}`), // Base Sepolia
     1329: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_1329 as `0x${string}`), // Sei
-    713715: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_713715 as `0x${string}`), // Sei Testnet
 };
 
 export const CAMPAIGN_FACTORY_ABI = [

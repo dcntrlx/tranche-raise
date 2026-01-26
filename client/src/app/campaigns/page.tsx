@@ -10,6 +10,7 @@ import { Header } from "../components/Header";
 import { formatEther } from "viem";
 import { CountdownTimer } from "../components/CountdownTimer";
 import { ProgressBar } from "../components/ProgressBar";
+import { useNativeToken } from "../hooks/useNativeToken";
 
 import { NetworkBackground } from "../components/NetworkBackground";
 
@@ -25,8 +26,11 @@ function CampaignsContent() {
     const { address } = useAccount();
     const chainId = useChainId();
     const factoryAddress = CAMPAIGN_FACTORY_ADDRESSES[chainId] || CAMPAIGN_FACTORY_ADDRESSES[31337];
+    const tokenSymbol = useNativeToken();
     const searchParams = useSearchParams();
     const statusFilter = searchParams.get('status');
+    const ownerFilter = searchParams.get('owner');
+    const backerFilter = searchParams.get('backer');
 
     const { data: campaigns = [] } = useReadContract({
         address: factoryAddress,
@@ -44,11 +48,21 @@ function CampaignsContent() {
             { address: campaign, abi: CAMPAIGN_ABI, functionName: 'campaignEnd' },
             { address: campaign, abi: CAMPAIGN_ABI, functionName: 'metadataCID' },
             { address: campaign, abi: CAMPAIGN_ABI, functionName: 'isCancelled' },
+            { address: campaign, abi: CAMPAIGN_ABI, functionName: 'OWNER' },
         ]) || []
     })
 
+    const { data: backerDataRaw } = useReadContracts({
+        contracts: backerFilter ? campaigns?.map((campaign) => ({
+            address: campaign,
+            abi: CAMPAIGN_ABI,
+            functionName: 'backersRaises',
+            args: [backerFilter as `0x${string}`]
+        })) || [] : []
+    })
+
     const campaignsData = campaigns?.map((campaign, index) => {
-        const offset = index * 8;
+        const offset = index * 9;
         return {
             campaignAddress: campaign,
             campaignTitle: campaignsDataRaw?.[offset]?.result,
@@ -59,10 +73,24 @@ function CampaignsContent() {
             campaignEnd: campaignsDataRaw?.[offset + 5]?.result,
             metadataCID: campaignsDataRaw?.[offset + 6]?.result,
             isCancelled: campaignsDataRaw?.[offset + 7]?.result,
+            owner: campaignsDataRaw?.[offset + 8]?.result,
+            backerContribution: backerDataRaw?.[index]?.result,
         };
     }) || [];
 
     const filteredCampaigns = campaignsData.filter(campaign => {
+        // Filter by owner
+        if (ownerFilter) {
+            return campaign.owner?.toString().toLowerCase() === ownerFilter.toLowerCase();
+        }
+
+        // Filter by backer (user has contributed)
+        if (backerFilter) {
+            const contribution = campaign.backerContribution as bigint | undefined;
+            return contribution !== undefined && contribution > 0n;
+        }
+
+        // Filter by status
         if (!statusFilter) return true;
 
         const state = Number(campaign.campaignState);
@@ -76,6 +104,8 @@ function CampaignsContent() {
     });
 
     const getTitle = () => {
+        if (ownerFilter) return 'My';
+        if (backerFilter) return 'Backed';
         if (statusFilter === 'fundraising') return 'Fundraising';
         if (statusFilter === 'vesting') return 'Vesting';
         if (statusFilter === 'finished') return 'Finished';
@@ -130,6 +160,8 @@ function CampaignsContent() {
     }, [campaignsData]); // Dependency could be refined to avoid loops, but campaignsData changes when data loads
 
     const getDescription = () => {
+        if (ownerFilter) return "Campaigns you have created. Track their progress and manage tranches.";
+        if (backerFilter) return "Campaigns you have invested in. Monitor your contributions and vote on tranches.";
         if (statusFilter === 'failed') return "These ideas haven't found enough attention or was cancelled by community. Maybe you can improve these ideas?";
         if (statusFilter === 'finished') return "These ideas have successfully finished. You can find your inspiration here.";
         if (statusFilter === 'vesting') return "These ideas found their investors. Now we are closely watching them become reality.";
@@ -205,6 +237,7 @@ function CampaignsContent() {
                                             total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n}
                                             variant="blue"
                                             label="Funding Progress"
+                                            tokenSymbol={tokenSymbol}
                                         />
                                         <div className="flex items-center justify-between text-zinc-500 text-xs font-mono">
                                             <span>TIME REMAINING</span>
@@ -222,6 +255,7 @@ function CampaignsContent() {
                                             overlayCurrent={campaign.campaignDistributed ? BigInt(campaign.campaignDistributed as unknown as bigint) : 0n}
                                             overlayVariant="gold"
                                             label="Distribution Progress"
+                                            tokenSymbol={tokenSymbol}
                                         />
                                         <div className="flex items-center justify-between text-zinc-500 text-xs font-mono">
                                             <span>VESTING STARTED</span>
@@ -237,9 +271,10 @@ function CampaignsContent() {
                                             total={campaign.campaignGoal ? BigInt(campaign.campaignGoal as unknown as bigint) : 0n}
                                             variant="blue"
                                             label="Final Results"
+                                            tokenSymbol={tokenSymbol}
                                         />
                                         <div className="flex items-center justify-between text-zinc-400 text-sm">
-                                            <span>Goal: {campaign.campaignGoal ? formatEther(campaign.campaignGoal as bigint) : '0'} ETH</span>
+                                            <span>Goal: {campaign.campaignGoal ? formatEther(campaign.campaignGoal as bigint) : '0'} {tokenSymbol}</span>
                                             <span className={campaign.campaignState === 2 ? 'text-green-400' : 'text-red-400'}>
                                                 {campaign.campaignState === 2 ? 'Goal Met' : campaign.isCancelled ? 'Cancelled' : 'Not Reached'}
                                             </span>

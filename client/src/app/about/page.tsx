@@ -25,54 +25,80 @@ export default function About() {
 
                 <div className="p-8">
                     <div className="prose prose-invert max-w-none">
-                        <h3 className="text-2xl font-semibold mb-4 text-cyan-100">Our Mission</h3>
-                        <p className="text-zinc-300 mb-6 leading-relaxed">
-                            Tranche Raise is dedicated to revolutionizing the way projects are funded. By introducing milestone-based capital release, we ensure that investors are protected and projects remain accountable to their roadmap.
-                        </p>
-
-                        <h3 className="text-2xl font-semibold mb-4 text-cyan-100">How It Works</h3>
-                        <div className="space-y-6 text-zinc-300 mb-8">
-                            <p>
-                                Tranche Raise changes the dynamic between investors and projects. Instead of "pray and spray" investing, where you hand over money and hope for the best, we introduce a system of accountability.
-                            </p>
-
-                            <div>
-                                <h4 className="text-xl text-white font-medium mb-2">1. Campaign Creation & Goal Setting</h4>
-                                <p>
-                                    Project creators launch a campaign with a specific fundraising goal and a timeline. They define what they plan to achieve and how much capital they need.
-                                </p>
+                        <h3 className="text-2xl font-semibold mb-6 text-cyan-100">Why TrancheRaise?</h3>
+                        <div className="grid md:grid-cols-2 gap-8 mb-12">
+                            <div className="bg-gradient-to-br from-blue-900/30 to-cyan-900/20 border border-blue-500/20 rounded-2xl p-6">
+                                <h4 className="text-xl font-bold text-blue-400 mb-4">For Founders</h4>
+                                <ul className="space-y-3 text-zinc-300">
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-cyan-400 mt-1">&#10003;</span>
+                                        <span><strong className="text-white">Decentralized Funding Access</strong> - Raise capital without intermediaries, geographic restrictions, or traditional gatekeepers.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-cyan-400 mt-1">&#10003;</span>
+                                        <span><strong className="text-white">Build Investor Trust</strong> - The milestone-based system signals credibility. Investors are more likely to back projects when they know their funds are protected.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-cyan-400 mt-1">&#10003;</span>
+                                        <span><strong className="text-white">Aligned Incentives</strong> - Focus on delivering real progress, not just marketing. Your success unlocks your funding.</span>
+                                    </li>
+                                </ul>
                             </div>
 
-                            <div>
-                                <h4 className="text-xl text-white font-medium mb-2">2. The Tranche System</h4>
-                                <p>
-                                    When you invest, your funds are not immediately given to the project. Instead, they are held in a smart contract. The project only receives an initial "seed" tranche to get started. The rest of the funds are locked.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h4 className="text-xl text-white font-medium mb-2">3. Milestone-Based Voting</h4>
-                                <p>
-                                    To unlock subsequent tranches of funds, the project must demonstrate progress. Token holders (investors) vote on whether to release the next tranche.
-                                    <br />
-                                    <span className="italic text-zinc-400">If the community is happy with the progress:</span> They vote YES, and funds are released.
-                                    <br />
-                                    <span className="italic text-zinc-400">If the project has stalled or failed:</span> They vote NO.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h4 className="text-xl text-white font-medium mb-2">4. Protection via Refunds</h4>
-                                <p>
-                                    If a vote for a tranche fails, the remaining funds in the smart contract are not lost. They are returned to the investors proportionally. This ensures that if a project fails to deliver, you recover your unspent capital.
-                                </p>
+                            <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/20 border border-amber-500/20 rounded-2xl p-6">
+                                <h4 className="text-xl font-bold text-amber-400 mb-4">For Backers</h4>
+                                <ul className="space-y-3 text-zinc-300">
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-amber-400 mt-1">&#10003;</span>
+                                        <span><strong className="text-white">Protected Capital</strong> - Your funds are released in stages. If a project fails, unspent capital is returned to you proportionally.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-amber-400 mt-1">&#10003;</span>
+                                        <span><strong className="text-white">Full Refund Control</strong> - Withdraw your contribution anytime during fundraising. During vesting, if 60% of backers vote to cancel, the campaign ends and remaining funds are refunded proportionally.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-amber-400 mt-1">&#10003;</span>
+                                        <span><strong className="text-white">Direct Influence</strong> - Vote on every tranche release. Your voice determines whether the project continues receiving funds.</span>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
 
-                        <h3 className="text-2xl font-semibold mb-4 text-cyan-100">Documentation</h3>
-                        <p className="text-zinc-300 mb-12">
-                            Detailed technical documentation and user guides will be available here soon. We are building a future where transparency is the standard, not the exception.
-                        </p>
+                        <h3 className="text-2xl font-semibold mb-4 text-cyan-100">How It Works?</h3>
+                        <div className="space-y-6 text-zinc-300 mb-8">
+                            <p>
+                                TrancheRaise provides the possibility for investors to back projects safely, therefore improving credibility of founders.
+                            </p>
+
+                            <div>
+                                <h4 className="text-xl text-white font-medium mb-2">1. Fundraising</h4>
+                                <ul className="list-disc list-inside space-y-2">
+                                    <li>Project creators launch a campaign with a fundraising goal and deadline</li>
+                                    <li>Investors contribute funds to support the project</li>
+                                    <li>If the goal is met, the campaign moves to vesting stage. If not, all funds are returned to investors</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 className="text-xl text-white font-medium mb-2">2. The Tranche System and Milestone Voting</h4>
+                                <p className="mb-3">
+                                    Project team doesn't get full access to money as soon as fundraising goal is met. Funds are released through tranches:
+                                </p>
+                                <ul className="list-disc list-inside space-y-2">
+                                    <li>Project team requests a tranche for a specific goal</li>
+                                    <li>Investors vote on the tranche. If more than 50% vote in favor, it gets approved and funds are sent to the project team. Otherwise, the tranche fails and money stays in the campaign</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 className="text-xl text-white font-medium mb-2">3. Protection via Refunds</h4>
+                                <ul className="list-disc list-inside space-y-2">
+                                    <li>If fundraising fails, all funds are returned to investors</li>
+                                    <li>Investors can revoke funds at any time during the fundraising stage</li>
+                                    <li>During vesting, investors can vote for refund. If more than 60% vote in favor, remaining funds are returned proportionally</li>
+                                </ul>
+                            </div>
+                        </div>
 
                         <div className="flex justify-center pt-8">
                             <Link

@@ -9,9 +9,10 @@ interface ProgressBarProps {
     label?: string;
     overlayCurrent?: bigint | number;
     overlayVariant?: 'blue' | 'gold';
+    tokenSymbol?: string;
 }
 
-export function ProgressBar({ current, total, variant, label, overlayCurrent, overlayVariant }: ProgressBarProps) {
+export function ProgressBar({ current, total, variant, label, overlayCurrent, overlayVariant, tokenSymbol = 'ETH' }: ProgressBarProps) {
     const currentNum = Number(current);
     const totalNum = Number(total);
     const overlayNum = overlayCurrent !== undefined ? Number(overlayCurrent) : 0;
@@ -26,7 +27,7 @@ export function ProgressBar({ current, total, variant, label, overlayCurrent, ov
         <div className="w-full">
             {label && <div className="flex justify-between items-end text-sm mb-2.5">
                 <span className="text-zinc-400 font-medium tracking-wide uppercase text-[10px]">{label}</span>
-                <span className="text-white font-bold opacity-90">{formatEther(BigInt(current))} <span className="text-zinc-500 font-normal">/ {formatEther(BigInt(total))} ETH</span></span>
+                <span className="text-white font-bold opacity-90">{formatEther(BigInt(current))} <span className="text-zinc-500 font-normal">/ {formatEther(BigInt(total))} {tokenSymbol}</span></span>
             </div>}
             <div className="w-full bg-zinc-800/50 rounded-full h-3 relative overflow-hidden ring-1 ring-white/5 shadow-inner">
                 <div
@@ -41,7 +42,7 @@ export function ProgressBar({ current, total, variant, label, overlayCurrent, ov
                 )}
             </div>
             {!label && <div className="text-right text-xs mt-2 text-zinc-500 font-medium">
-                {formatEther(BigInt(current))} <span className="opacity-50">/ {formatEther(BigInt(total))} ETH</span>
+                {formatEther(BigInt(current))} <span className="opacity-50">/ {formatEther(BigInt(total))} {tokenSymbol}</span>
             </div>}
         </div>
     );
