@@ -18,7 +18,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <WagmiProvider config={config}>
             <QueryClientProvider client={queryClient}>
-                <RainbowKitProvider theme={darkTheme()}>
+                <RainbowKitProvider
+                    theme={darkTheme()}
+                    appInfo={{
+                        appName: 'Tranche Raise',
+                        appIcon: '/icon.png',
+                        learnMoreUrl: 'https://trancheraise.org',
+                    }}
+                >
                     {children}
                 </RainbowKitProvider>
             </QueryClientProvider>

@@ -16,6 +16,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tranche Raise | Decentralized Vested Crowdfunding",
   description: "Crowdfunding & Vesting Platform",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
   openGraph: {
     title: "Tranche Raise | Decentralized Vested Crowdfunding",
     description: "Crowdfunding & Vesting Platform",
