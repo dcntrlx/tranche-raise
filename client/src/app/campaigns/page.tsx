@@ -174,31 +174,31 @@ function CampaignsContent() {
 
             <Header>
                 <CampaignsDropdown />
-                <Link href="/about" className="px-5 py-2.5 rounded-full bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all backdrop-blur-md">
+                <Link href="/about" className="px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all backdrop-blur-md text-sm md:text-base">
                     About
                 </Link>
             </Header>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-8">
-                <header className="mb-12">
-                    <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                <header className="mb-8 md:mb-12">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-3 md:mb-4">
                         {getTitle()} <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Campaigns</span>
                     </h2>
-                    <p className="text-zinc-400 max-w-2xl text-lg">
+                    <p className="text-zinc-400 max-w-2xl text-sm sm:text-base md:text-lg">
                         {getDescription()}
                     </p>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-24">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 pb-16 md:pb-24">
                     {filteredCampaigns?.map((campaign) => (
-                        <div key={campaign.campaignAddress} className="group relative glass glass-hover p-8 rounded-3xl overflow-hidden flex flex-col h-full transform transition-all duration-300 hover:-translate-y-2">
+                        <div key={campaign.campaignAddress} className="group relative glass glass-hover p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full transform transition-all duration-300 hover:-translate-y-2">
                             {/* Glow Effect */}
                             <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 blur-[80px] group-hover:bg-blue-500/20 transition-all duration-500" />
 
-                            <div className="flex justify-between items-start mb-6">
+                            <div className="flex justify-between items-start mb-4 md:mb-6">
                                 <Link
                                     href={`campaigns/${campaign.campaignAddress}`}
-                                    className="text-2xl font-bold text-white hover:text-cyan-400 transition-colors leading-tight line-clamp-2 pr-4"
+                                    className="text-lg sm:text-xl md:text-2xl font-bold text-white hover:text-cyan-400 transition-colors leading-tight line-clamp-2 pr-2 md:pr-4"
                                 >
                                     {campaign.campaignTitle as string}
                                 </Link>
@@ -225,11 +225,11 @@ function CampaignsContent() {
                                 )}
                             </div>
 
-                            <p className="text-zinc-400 text-sm line-clamp-3 mb-6">
+                            <p className="text-zinc-400 text-xs sm:text-sm line-clamp-3 mb-4 md:mb-6">
                                 {descriptions[campaign.metadataCID as string] || "Loading description..."}
                             </p>
 
-                            <div className="flex-grow space-y-8">
+                            <div className="flex-grow space-y-6 md:space-y-8">
                                 {campaign.campaignState === 0 && (
                                     <div className="space-y-4">
                                         <ProgressBar
@@ -283,10 +283,10 @@ function CampaignsContent() {
                                 )}
                             </div>
 
-                            <div className="mt-10">
+                            <div className="mt-6 md:mt-10">
                                 <Link
                                     href={`campaigns/${campaign.campaignAddress}`}
-                                    className="w-full h-14 flex items-center justify-center bg-zinc-100 hover:bg-white text-black font-bold rounded-2xl transition-all active:scale-[0.98] shadow-lg group-hover:shadow-white/10"
+                                    className="w-full h-12 md:h-14 flex items-center justify-center bg-zinc-100 hover:bg-white text-black font-bold text-sm md:text-base rounded-xl md:rounded-2xl transition-all active:scale-[0.98] shadow-lg group-hover:shadow-white/10"
                                 >
                                     {campaign.campaignState === 0 ? 'Invest Now' : 'View Details'}
                                 </Link>

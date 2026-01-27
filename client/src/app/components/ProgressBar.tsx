@@ -25,23 +25,23 @@ export function ProgressBar({ current, total, variant, label, overlayCurrent, ov
 
     return (
         <div className="w-full">
-            {label && <div className="flex justify-between items-end text-sm mb-2.5">
-                <span className="text-zinc-400 font-medium tracking-wide uppercase text-[10px]">{label}</span>
-                <span className="text-white font-bold opacity-90">{formatEther(BigInt(current))} <span className="text-zinc-500 font-normal">/ {formatEther(BigInt(total))} {tokenSymbol}</span></span>
+            {label && <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-1 sm:gap-0 text-sm mb-2 md:mb-2.5">
+                <span className="text-zinc-400 font-medium tracking-wide uppercase text-[8px] md:text-[10px]">{label}</span>
+                <span className="text-white font-bold opacity-90 text-xs md:text-sm">{formatEther(BigInt(current))} <span className="text-zinc-500 font-normal">/ {formatEther(BigInt(total))} {tokenSymbol}</span></span>
             </div>}
-            <div className="w-full bg-zinc-800/50 rounded-full h-3 relative overflow-hidden ring-1 ring-white/5 shadow-inner">
+            <div className="w-full bg-zinc-800/50 rounded-full h-2.5 md:h-3 relative overflow-hidden ring-1 ring-white/5 shadow-inner">
                 <div
-                    className={`${colorClass} h-3 rounded-full transition-all duration-700 ease-out absolute top-0 left-0 z-10`}
+                    className={`${colorClass} h-2.5 md:h-3 rounded-full transition-all duration-700 ease-out absolute top-0 left-0 z-10`}
                     style={{ width: `${percentage}%` }}
                 ></div>
                 {overlayCurrent !== undefined && (
                     <div
-                        className={`${overlayColorClass} h-3 rounded-full transition-all duration-700 ease-out absolute top-0 left-0 z-20`}
+                        className={`${overlayColorClass} h-2.5 md:h-3 rounded-full transition-all duration-700 ease-out absolute top-0 left-0 z-20`}
                         style={{ width: `${overlayPercentage}%` }}
                     ></div>
                 )}
             </div>
-            {!label && <div className="text-right text-xs mt-2 text-zinc-500 font-medium">
+            {!label && <div className="text-right text-[10px] md:text-xs mt-1.5 md:mt-2 text-zinc-500 font-medium">
                 {formatEther(BigInt(current))} <span className="opacity-50">/ {formatEther(BigInt(total))} {tokenSymbol}</span>
             </div>}
         </div>

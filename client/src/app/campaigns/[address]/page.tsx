@@ -1,6 +1,6 @@
 'use client'
 
-import { useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useChainId } from "wagmi";
+import { useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { use, useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { notFound } from "next/navigation";
@@ -100,6 +100,30 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
     const [trancheTitle, setTrancheTitle] = useState('');
     const [trancheGoal, setTrancheGoal] = useState('');
     const [trancheRecepient, setTrancheRecepient] = useState('');
+    const [pendingVoteIndex, setPendingVoteIndex] = useState<number | null>(null);
+    const [confirmedVotes, setConfirmedVotes] = useState<Set<number>>(new Set());
+
+    // Build contracts array for checking user votes - memoized to prevent race conditions
+    const userVoteContracts = tranches.length > 0 && address ? tranches.map((_, index) => ({
+        address: campaignAddress,
+        abi: CAMPAIGN_ABI,
+        functionName: 'hasVotedForTranche' as const,
+        args: [BigInt(index), address] as const
+    })) : [];
+
+    // Check if user has voted for each tranche
+    const { data: userTrancheVotes, refetch: refetchUserVotes, isLoading: isLoadingUserVotes, error: userVotesError, status: userVotesStatus } = useReadContracts({
+        contracts: userVoteContracts,
+        query: {
+            enabled: userVoteContracts.length > 0
+        }
+    });
+
+    // Helper to check if user has voted for a specific tranche
+    const hasVotedForTranche = (index: number): boolean => {
+        return (userTrancheVotes?.[index]?.result as boolean) || confirmedVotes.has(index);
+    };
+
 
     const createTranche = () => {
         writeContract({
@@ -110,13 +134,14 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
         },)
     }
 
-    const voteTranche = (_trancheIndex: bigint, _voteFor: boolean) => {
+    const voteTranche = async (_trancheIndex: bigint, _voteFor: boolean) => {
+        setPendingVoteIndex(Number(_trancheIndex));
         writeContract({
             address: campaignAddress,
             abi: CAMPAIGN_ABI,
             functionName: "voteForTranche",
             args: [_trancheIndex, _voteFor]
-        })
+        });
     }
 
     const revokeInvestment = () => {
@@ -145,12 +170,17 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
 
     useEffect(() => {
         if (isConfirmed) {
+            if (pendingVoteIndex !== null) {
+                setConfirmedVotes(prev => new Set(prev).add(pendingVoteIndex));
+                setPendingVoteIndex(null);
+            }
             refetchCampaignData();
             refetchTranchesData();
+            refetchUserVotes();
             queryClient.invalidateQueries();
             setValue('');
         }
-    }, [isConfirmed, queryClient, refetchCampaignData, refetchTranchesData])
+    }, [isConfirmed, queryClient, refetchCampaignData, refetchTranchesData, refetchUserVotes, pendingVoteIndex])
 
     const [description, setDescription] = useState<string | null>(null);
 
@@ -215,32 +245,32 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
 
             {/* Header */}
             <Header>
-                <Link href="/campaigns" className="px-5 py-2.5 rounded-full bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all backdrop-blur-md">
-                    Back to Campaigns
+                <Link href="/campaigns" className="px-3 md:px-5 py-2 md:py-2.5 rounded-full bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all backdrop-blur-md text-xs md:text-base">
+                    Back
                 </Link>
             </Header>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-8 pb-32">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pb-16 md:pb-32">
                 {/* Hero Section */}
-                <header className="mb-16 relative">
+                <header className="mb-8 md:mb-16 relative">
                     {/* Ambient Glow */}
                     <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none -z-10" />
 
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-8 mb-8 md:mb-12">
                         <div className="max-w-3xl">
-                            <div className="flex items-center gap-3 mb-6">
-                                {isFundraising && <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]">Active Fundraising</span>}
-                                {isVesting && <span className="px-3 py-1 bg-amber-500/10 text-amber-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.1)]">Vesting Strategy</span>}
-                                {isFinished && <span className="px-3 py-1 bg-zinc-500/10 text-zinc-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-zinc-500/20">Closed</span>}
-                                {isRejected && <span className="px-3 py-1 bg-red-500/10 text-red-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-red-500/20">{isCancelled || thresholdMet ? "Cancelled" : "Failed"}</span>}
-                                <span className="text-zinc-600 font-mono text-xs tracking-tight">{(campaignAddress as string)}</span>
+                            <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4 md:mb-6">
+                                {isFundraising && <span className="px-2 md:px-3 py-1 bg-blue-500/10 text-blue-400 text-[8px] md:text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]">Active Fundraising</span>}
+                                {isVesting && !isFinished && <span className="px-2 md:px-3 py-1 bg-amber-500/10 text-amber-400 text-[8px] md:text-[10px] font-bold uppercase tracking-widest rounded-full border border-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.1)]">Vesting Strategy</span>}
+                                {isFinished && <span className="px-2 md:px-3 py-1 bg-zinc-500/10 text-zinc-400 text-[8px] md:text-[10px] font-bold uppercase tracking-widest rounded-full border border-zinc-500/20">Finished</span>}
+                                {isRejected && <span className="px-2 md:px-3 py-1 bg-red-500/10 text-red-400 text-[8px] md:text-[10px] font-bold uppercase tracking-widest rounded-full border border-red-500/20">{isCancelled || thresholdMet ? "Cancelled" : "Failed"}</span>}
+                                <span className="text-zinc-600 font-mono text-[10px] md:text-xs tracking-tight hidden sm:inline">{(campaignAddress as string)}</span>
                             </div>
-                            <h2 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
+                            <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-bold tracking-tight text-white mb-4 md:mb-6 leading-tight">
                                 <span className={isFundraising ? "text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-blue-200" : "text-white"}>
                                     {campaignTitle as string}
                                 </span>
                             </h2>
-                            <p className="text-zinc-400 text-xl font-light leading-relaxed mb-8 max-w-2xl">
+                            <p className="text-zinc-400 text-sm sm:text-base md:text-xl font-light leading-relaxed mb-4 md:mb-8 max-w-2xl whitespace-pre-line">
                                 {description || (metadataCID ? "Fetching project description..." : "No project description provided.")}
                             </p>
 
@@ -250,13 +280,13 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    <div className="lg:col-span-2 space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-12">
+                    <div className="lg:col-span-2 space-y-6 md:space-y-8">
                         {/* Progress Panel */}
-                        <section className="glass p-10 rounded-3xl space-y-8 border-white/5 relative overflow-hidden">
+                        <section className="glass p-4 sm:p-6 md:p-10 rounded-2xl md:rounded-3xl space-y-6 md:space-y-8 border-white/5 relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500/50 to-blue-500/50 opacity-20" />
                             <div>
-                                <h3 className="text-2xl font-bold text-white mb-6">
+                                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">
                                     Capital Flow
                                 </h3>
                                 <ProgressBar
@@ -335,21 +365,21 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                         </section>
 
                         {/* Tranches Section */}
-                        <section className="space-y-6">
+                        <section className="space-y-4 md:space-y-6">
                             <div className="flex items-center justify-between px-2">
-                                <h3 className="text-2xl font-bold text-white">Project Tranches</h3>
-                                <span className="text-zinc-500 font-mono text-sm px-3 py-1 rounded-full bg-white/5 border border-white/5">{tranches.length} Requests</span>
+                                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Project Tranches</h3>
+                                <span className="text-zinc-500 font-mono text-xs md:text-sm px-2 md:px-3 py-1 rounded-full bg-white/5 border border-white/5">{tranches.length} Requests</span>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-6">
+                            <div className="grid grid-cols-1 gap-4 md:gap-6">
                                 {tranches.map((tranche, index) => (
-                                    <div key={tranche.trancheName} className="glass p-8 rounded-3xl hover:border-white/20 transition-all group relative overflow-hidden">
+                                    <div key={tranche.trancheName} className="glass p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl hover:border-white/20 transition-all group relative overflow-hidden">
                                         <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-800/20 blur-[60px] rounded-full pointer-events-none group-hover:bg-zinc-700/20 transition-colors" />
 
-                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative z-10">
+                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6 mb-6 md:mb-8 relative z-10">
                                             <div>
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <h4 className="text-2xl font-bold text-white group-hover:text-cyan-100 transition-colors">{tranche.trancheName}</h4>
+                                                <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2">
+                                                    <h4 className="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover:text-cyan-100 transition-colors">{tranche.trancheName}</h4>
                                                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${tranche.state === 1 ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)]' :
                                                         tranche.state === 2 ? 'bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_10px_rgba(74,222,128,0.1)]' :
                                                             tranche.state === 3 ? 'bg-red-500/10 text-red-400 border-red-500/20' :
@@ -366,51 +396,80 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                                                 </p>
                                             </div>
                                             <div className="text-left md:text-right">
-                                                <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest block mb-1">Requested Amount</span>
-                                                <span className="text-3xl font-bold text-white tracking-tight">{tranche.trancheAmount ? formatEther(tranche.trancheAmount as bigint) : '0'} <span className="text-lg font-medium opacity-50 text-cyan-200">{tokenSymbol}</span></span>
+                                                <span className="text-zinc-500 text-[8px] md:text-[10px] font-bold uppercase tracking-widest block mb-1">Requested Amount</span>
+                                                <span className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">{tranche.trancheAmount ? formatEther(tranche.trancheAmount as bigint) : '0'} <span className="text-sm md:text-lg font-medium opacity-50 text-cyan-200">{tokenSymbol}</span></span>
                                             </div>
                                         </div>
 
                                         {tranche.state === 1 && (
-                                            <div className="bg-zinc-950/30 rounded-2xl p-6 space-y-6 border border-white/5 relative z-10">
+                                            <div className="bg-zinc-950/30 rounded-xl md:rounded-2xl p-4 md:p-6 space-y-4 md:space-y-6 border border-white/5 relative z-10">
                                                 <div className="flex justify-between items-end">
                                                     <div className="space-y-2 w-full">
-                                                        <div className="flex justify-between items-center">
-                                                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Community Consensus</span>
-                                                            <span className="text-xs font-mono text-zinc-400">Voting Power Check</span>
+                                                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                                                            <span className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Community Consensus</span>
+                                                            <span className="text-[10px] md:text-xs font-mono text-zinc-400">
+                                                                {totalRaised ? `${((Number(tranche.votesFor || 0) + Number(tranche.votesAgainst || 0)) / Number(totalRaised) * 100).toFixed(1)}%` : '0%'} voted
+                                                            </span>
                                                         </div>
                                                         <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden flex">
-                                                            {/* Visual bar just for flavor since we don't have total token supply easily here, usually would be % of supply */}
-                                                            <div className="h-full bg-green-500/50 w-1/2" />
-                                                            <div className="h-full bg-red-500/50 w-1/4" />
+                                                            {(() => {
+                                                                const votesFor = tranche.votesFor ? Number(tranche.votesFor) : 0;
+                                                                const votesAgainst = tranche.votesAgainst ? Number(tranche.votesAgainst) : 0;
+                                                                const total = totalRaised ? Number(totalRaised) : 0;
+                                                                if (total === 0) return null;
+                                                                const forPercent = (votesFor / total) * 100;
+                                                                const againstPercent = (votesAgainst / total) * 100;
+                                                                return (
+                                                                    <>
+                                                                        <div className="h-full bg-green-500/50 transition-all duration-300" style={{ width: `${forPercent}%` }} />
+                                                                        <div className="h-full bg-red-500/50 transition-all duration-300" style={{ width: `${againstPercent}%` }} />
+                                                                    </>
+                                                                );
+                                                            })()}
                                                         </div>
-                                                        <div className="flex items-baseline gap-4 pt-1">
-                                                            <span className="text-green-400 font-bold flex items-center gap-2">
+                                                        <div className="flex flex-wrap items-baseline gap-2 md:gap-4 pt-1 text-sm md:text-base">
+                                                            <span className="text-green-400 font-bold flex items-center gap-1 md:gap-2">
                                                                 <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
-                                                                {tranche.votesFor ? formatEther(tranche.votesFor as bigint) : "0"} YES
+                                                                {totalRaised ? (Number(tranche.votesFor || 0) / Number(totalRaised) * 100).toFixed(1) : '0'}% YES
                                                             </span>
                                                             <span className="text-zinc-600 text-xs text-opacity-50">|</span>
-                                                            <span className="text-red-400 font-bold flex items-center gap-2">
+                                                            <span className="text-red-400 font-bold flex items-center gap-1 md:gap-2">
                                                                 <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(248,113,113,0.5)]" />
-                                                                {tranche.votesAgainst ? formatEther(tranche.votesAgainst as bigint) : "0"} NO
+                                                                {totalRaised ? (Number(tranche.votesAgainst || 0) / Number(totalRaised) * 100).toFixed(1) : '0'}% NO
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-4 pt-2">
-                                                    <button
-                                                        className="flex-1 h-12 bg-green-500/5 hover:bg-green-500/10 text-green-400 hover:text-green-300 border border-green-500/20 hover:border-green-500/40 rounded-xl transition-all font-bold text-sm uppercase tracking-wide hover:shadow-[0_0_20px_rgba(74,222,128,0.1)]"
-                                                        onClick={() => voteTranche(BigInt(index), true)}
-                                                    >
-                                                        Approve Release
-                                                    </button>
-                                                    <button
-                                                        className="flex-1 h-12 bg-red-500/5 hover:bg-red-500/10 text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 rounded-xl transition-all font-bold text-sm uppercase tracking-wide hover:shadow-[0_0_20px_rgba(248,113,113,0.1)]"
-                                                        onClick={() => voteTranche(BigInt(index), false)}
-                                                    >
-                                                        Deny Release
-                                                    </button>
-                                                </div>
+                                                {isLoadingUserVotes && (userInvestment as bigint || 0n) > 0n && (
+                                                    <div className="flex items-center gap-2 text-zinc-500 text-xs pt-2">
+                                                        <div className="w-3 h-3 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin"></div>
+                                                        Checking vote status...
+                                                    </div>
+                                                )}
+                                                {!isLoadingUserVotes && !hasVotedForTranche(index) && (userInvestment as bigint || 0n) > 0n && (
+                                                    <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2">
+                                                        <button
+                                                            className="flex-1 h-11 md:h-12 bg-green-500/5 hover:bg-green-500/10 text-green-400 hover:text-green-300 border border-green-500/20 hover:border-green-500/40 rounded-xl transition-all font-bold text-xs md:text-sm uppercase tracking-wide hover:shadow-[0_0_20px_rgba(74,222,128,0.1)]"
+                                                            onClick={() => voteTranche(BigInt(index), true)}
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                        <button
+                                                            className="flex-1 h-11 md:h-12 bg-red-500/5 hover:bg-red-500/10 text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 rounded-xl transition-all font-bold text-xs md:text-sm uppercase tracking-wide hover:shadow-[0_0_20px_rgba(248,113,113,0.1)]"
+                                                            onClick={() => voteTranche(BigInt(index), false)}
+                                                        >
+                                                            Deny
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {!isLoadingUserVotes && hasVotedForTranche(index) && (
+                                                    <div className="flex items-center gap-2 text-zinc-400 text-xs pt-2">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-blue-400">
+                                                            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                                                        </svg>
+                                                        You have already voted on this tranche
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 
@@ -441,112 +500,142 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                         </section>
                     </div>
 
-                    <div className="space-y-8">
+                    <div className="space-y-6 md:space-y-8">
                         {isFundraising && (
-                            <div className="glass p-8 rounded-3xl w-full space-y-6 border-blue-500/20 relative overflow-hidden group shadow-[0_0_50px_rgba(59,130,246,0.05)]">
+                            <div className="glass p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl w-full space-y-4 md:space-y-6 border-blue-500/20 relative overflow-hidden group shadow-[0_0_50px_rgba(59,130,246,0.05)]">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[60px] rounded-full pointer-events-none" />
 
                                 <div className="space-y-3 relative z-10">
-                                    <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                                    <div className="flex justify-between text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                                         <span>Contribution</span>
                                         <span>{tokenSymbol}</span>
                                     </div>
                                     <div className="relative">
                                         <input
-                                            className="w-full bg-zinc-950/50 border border-white/10 rounded-2xl px-6 py-4 text-2xl font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-zinc-700 font-mono"
+                                            className="w-full bg-zinc-950/50 border border-white/10 rounded-xl md:rounded-2xl px-4 md:px-6 py-3 md:py-4 text-xl md:text-2xl font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-zinc-700 font-mono"
                                             placeholder="1.5"
                                             value={value}
                                             onChange={(e) => setValue(e.target.value)}
                                         />
-                                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
-                                            <span className="text-zinc-500 text-sm font-bold">{tokenSymbol}</span>
+                                        <div className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <span className="text-zinc-500 text-xs md:text-sm font-bold">{tokenSymbol}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <button
-                                    className="w-full h-16 bg-blue-600 hover:bg-blue-500 text-white text-xl font-bold rounded-2xl transition-all shadow-[0_0_30px_rgba(37,99,235,0.3)] hover:shadow-[0_0_40px_rgba(37,99,235,0.5)] active:scale-95 relative z-10 flex items-center justify-center gap-2 group-hover:gap-3"
+                                    className="w-full h-12 md:h-16 bg-blue-600 hover:bg-blue-500 text-white text-base md:text-xl font-bold rounded-xl md:rounded-2xl transition-all shadow-[0_0_30px_rgba(37,99,235,0.3)] hover:shadow-[0_0_40px_rgba(37,99,235,0.5)] active:scale-95 relative z-10 flex items-center justify-center gap-2 group-hover:gap-3"
                                     onClick={fund}
                                 >
                                     Fund Campaign
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 md:w-5 md:h-5 transition-all">
                                         <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clipRule="evenodd" />
                                     </svg>
                                 </button>
 
                                 {(userInvestment as bigint) > 0n && (
                                     <button
-                                        className="w-full py-4 text-zinc-500 hover:text-red-400 text-sm font-bold rounded-2xl transition-all border border-white/5 hover:border-red-500/20 hover:bg-red-500/5 active:scale-95"
+                                        className="w-full py-3 md:py-4 text-zinc-500 hover:text-red-400 text-xs md:text-sm font-bold rounded-xl md:rounded-2xl transition-all border border-white/5 hover:border-red-500/20 hover:bg-red-500/5 active:scale-95"
                                         onClick={revokeInvestment}
                                     >
-                                        Revoke My Investment ({formatEther(userInvestment as bigint)} {tokenSymbol})
+                                        Revoke ({formatEther(userInvestment as bigint)} {tokenSymbol})
                                     </button>
                                 )}
                             </div>
                         )}
 
-                        {address === owner && !isFundraising && (
-                            <section className="glass p-8 rounded-3xl border-blue-500/20 sticky top-12 shadow-[0_0_50px_rgba(59,130,246,0.05)] h-fit">
+                        {address === owner && !isFundraising && !isFinished && !isRejected && (
+                            <section className="glass p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border-blue-500/20 shadow-[0_0_50px_rgba(59,130,246,0.05)] h-fit">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-[50px] rounded-full pointer-events-none" />
-                                <h3 className="text-xl font-bold text-white mb-6 relative z-10">Management Panel</h3>
+                                <h3 className="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 relative z-10">Management Panel</h3>
 
                                 {isVesting ? (
-                                    <div className="space-y-6 relative z-10">
-                                        <div className="space-y-4">
+                                    <div className="space-y-4 md:space-y-6 relative z-10">
+                                        <div className="space-y-3 md:space-y-4">
                                             <div>
-                                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block ml-1">Tranche Goal/Title</label>
-                                                <input className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-zinc-700" placeholder="e.g. Q1 Marketing" value={trancheTitle} onChange={(e) => setTrancheTitle(e.target.value)} />
+                                                <label className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block ml-1">Tranche Goal/Title</label>
+                                                <input className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-zinc-700" placeholder="e.g. Q1 Marketing" value={trancheTitle} onChange={(e) => setTrancheTitle(e.target.value)} />
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                                                 <div>
-                                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block ml-1">Amount ({tokenSymbol})</label>
-                                                    <input className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-zinc-700" placeholder="0.5" value={trancheGoal} onChange={(e) => setTrancheGoal(e.target.value)} />
+                                                    <label className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block ml-1">Amount ({tokenSymbol})</label>
+                                                    <input className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-zinc-700" placeholder="0.5" value={trancheGoal} onChange={(e) => setTrancheGoal(e.target.value)} />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block ml-1">Recipient</label>
-                                                    <input className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-zinc-700 font-mono text-sm" placeholder="0x..." value={trancheRecepient} onChange={(e) => setTrancheRecepient(e.target.value)} />
+                                                    <label className="text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 block ml-1">Recipient</label>
+                                                    <input className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-3 md:px-4 py-2.5 md:py-3 text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-zinc-700 font-mono text-xs md:text-sm" placeholder="0x..." value={trancheRecepient} onChange={(e) => setTrancheRecepient(e.target.value)} />
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 min-h-[1.25rem]">
+                                                <div>
+                                                    {trancheGoal && parseFloat(trancheGoal) > 0 && parseEther(trancheGoal) > ((totalRaised as bigint || 0n) - (totalDistributed as bigint || 0n)) && (
+                                                        <p className="text-red-400 text-[10px] md:text-xs font-medium ml-1">
+                                                            You can't request more funds than available
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    {trancheRecepient && !/^0x[a-fA-F0-9]{40}$/.test(trancheRecepient) && (
+                                                        <p className="text-red-400 text-[10px] md:text-xs font-medium ml-1">
+                                                            Address must be correct address in format: 0x12345...
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
                                         <button
-                                            className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                                            className={`w-full py-3 md:py-4 font-bold text-sm md:text-base rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 ${
+                                                (trancheGoal && parseFloat(trancheGoal) > 0 && parseEther(trancheGoal) > ((totalRaised as bigint || 0n) - (totalDistributed as bigint || 0n))) ||
+                                                (trancheRecepient && !/^0x[a-fA-F0-9]{40}$/.test(trancheRecepient))
+                                                    ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
+                                                    : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white active:scale-95'
+                                            }`}
                                             onClick={createTranche}
+                                            disabled={
+                                                !!(trancheGoal && parseFloat(trancheGoal) > 0 && parseEther(trancheGoal) > ((totalRaised as bigint || 0n) - (totalDistributed as bigint || 0n))) ||
+                                                !!(trancheRecepient && !/^0x[a-fA-F0-9]{40}$/.test(trancheRecepient))
+                                            }
                                         >
-                                            <span className="text-lg">+</span> Request Tranche
+                                            <span className="text-base md:text-lg">+</span> Request Tranche
                                         </button>
-                                        <p className="text-[10px] text-zinc-500 text-center uppercase tracking-tighter">Only project owner can request tranches</p>
                                     </div>
                                 ) : (
-                                    <div className="text-center py-8 space-y-4">
-                                        <div className="text-2xl text-zinc-700">🔒</div>
-                                        <p className="text-zinc-500 text-sm">Tranche management will unlock once the funding goal is met.</p>
+                                    <div className="text-center py-6 md:py-8 space-y-3 md:space-y-4">
+                                        <div className="text-xl md:text-2xl text-zinc-700">{isRejected ? '❌' : '🔒'}</div>
+                                        <p className="text-zinc-500 text-xs md:text-sm">
+                                            {isRejected
+                                                ? (isCancelledByCommunity
+                                                    ? "This campaign was cancelled by the community. Tranche management is no longer available."
+                                                    : "This campaign failed to reach its funding goal. Tranche management is no longer available.")
+                                                : "Tranche management will unlock once the funding goal is met."}
+                                        </p>
                                     </div>
                                 )}
                             </section>
                         )}
 
-                        {isVesting && ((userInvestment as bigint || 0n) > 0n || address === owner) && (
-                            <div className="glass p-8 rounded-3xl border-red-500/10 bg-red-500/5 space-y-6 relative overflow-hidden">
+                        {isVesting && !isFinished && ((userInvestment as bigint || 0n) > 0n || address === owner) && (
+                            <div className="glass p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border-red-500/10 bg-red-500/5 space-y-4 md:space-y-6 relative overflow-hidden">
                                 <div className="space-y-2 relative z-10">
-                                    <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <h4 className="text-base md:text-xl font-bold text-white flex flex-wrap items-center gap-2">
                                         Project Governance
-                                        <span className="text-[10px] font-normal px-2 py-0.5 rounded-full border text-red-400 border-red-500/20">
+                                        <span className="text-[8px] md:text-[10px] font-normal px-2 py-0.5 rounded-full border text-red-400 border-red-500/20">
                                             Critical Access
                                         </span>
                                     </h4>
-                                    <p className="text-zinc-500 text-xs leading-relaxed">
+                                    <p className="text-zinc-500 text-[10px] md:text-xs leading-relaxed">
                                         If the project is not delivering as promised, investors can vote to stop the funding.
                                     </p>
                                 </div>
 
                                 <div className="space-y-3 relative z-10">
-                                    <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                                    <div className="flex justify-between text-[8px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
                                         <span>Cancellation Progress</span>
                                         <span>{(Number(cancelVotes || 0n) / Number(totalRaised || 1n) * 100).toFixed(1)}% / 60%</span>
                                     </div>
                                 </div>
 
                                 <button
-                                    className={`w-full py-4 font-bold rounded-xl transition-all active:scale-95 relative z-10 ${((userInvestment as bigint) === 0n && address !== owner)
+                                    className={`w-full py-3 md:py-4 font-bold text-sm md:text-base rounded-xl transition-all active:scale-95 relative z-10 ${((userInvestment as bigint) === 0n && address !== owner)
                                         ? "bg-zinc-800 text-zinc-600 cursor-not-allowed border border-white/5"
                                         : hasVotedToCancel
                                             ? "bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5"
@@ -565,18 +654,18 @@ export default function CampaignDetails({ params }: { params: Promise<{ address:
                         )}
 
                         {!isFundraising && !isVesting && !isRejected && address !== owner && (
-                            <div className="glass p-8 rounded-3xl text-center space-y-6 border-white/5 bg-gradient-to-b from-white/5 to-transparent">
+                            <div className="glass p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl text-center space-y-4 md:space-y-6 border-white/5 bg-gradient-to-b from-white/5 to-transparent">
                                 <div>
-                                    <h4 className="font-bold text-white text-xl mb-2">Fundraising Finished</h4>
-                                    <p className="text-zinc-400 text-sm leading-relaxed max-w-sm mx-auto">
-                                        Oops, this project seems to have already finished fundraising. But, you can find other fascinating projects to invest in.
+                                    <h4 className="font-bold text-white text-lg md:text-xl mb-2">Fundraising Finished</h4>
+                                    <p className="text-zinc-400 text-xs md:text-sm leading-relaxed max-w-sm mx-auto">
+                                        This project has finished fundraising. Find other projects to invest in.
                                     </p>
                                 </div>
                                 <Link
                                     href="/campaigns?status=fundraising"
-                                    className="inline-block px-8 py-3 bg-zinc-100 hover:bg-white text-black font-bold rounded-full transition-all shadow-lg active:scale-95"
+                                    className="inline-block px-6 md:px-8 py-2.5 md:py-3 bg-zinc-100 hover:bg-white text-black font-bold text-sm md:text-base rounded-full transition-all shadow-lg active:scale-95"
                                 >
-                                    Fundraising Campaigns
+                                    Browse Campaigns
                                 </Link>
                             </div>
                         )}

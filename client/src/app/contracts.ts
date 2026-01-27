@@ -1,6 +1,12 @@
 export const CAMPAIGN_FACTORY_ADDRESSES: Record<number, `0x${string}`> = {
+    // Mainnets
     42161: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_42161 as `0x${string}`) || "0xcaf0c4fde258cb8fb3b0766cd071bc4244f4ca50", // Arbitrum
     1329: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_1329 as `0x${string}`), // Sei
+    // Testnets
+    421614: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_421614 as `0x${string}`), // Arbitrum Sepolia
+    1328: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_1328 as `0x${string}`), // Sei Testnet
+    // Local
+    31337: "0x5fbdb2315678afecb367f032d93f642f64180aa3", // Foundry/Anvil
 };
 
 export const CAMPAIGN_FACTORY_ABI = [
@@ -528,6 +534,30 @@ export const CAMPAIGN_ABI = [
         ],
         "outputs": [],
         "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "hasVotedForTranche",
+        "inputs": [
+            {
+                "name": "_trancheIndex",
+                "type": "uint256",
+                "internalType": "uint256"
+            },
+            {
+                "name": "_voter",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool",
+                "internalType": "bool"
+            }
+        ],
+        "stateMutability": "view"
     },
     {
         "type": "event",

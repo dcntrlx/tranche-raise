@@ -254,6 +254,15 @@ contract Campaign is Initializable {
         }
     }
 
+    /// @notice Check if a user has voted for a specific tranche
+    /// @param _trancheIndex The index of the tranche
+    /// @param _voter The address of the voter
+    /// @return bool True if the user has voted, false otherwise
+    function hasVotedForTranche(uint256 _trancheIndex, address _voter) external view returns (bool) {
+        if (_trancheIndex >= tranches.length) return false;
+        return tranches[_trancheIndex].usersVoted[_voter];
+    }
+
     /// @notice Function returns verstion of tranches to view
     /// @dev Supposed to be used only for external calls not in transactions
     function getAllTranches() external view returns (TrancheView[] memory) {

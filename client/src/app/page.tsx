@@ -84,33 +84,33 @@ export default function Home() {
 
       <Header>
         <CampaignsDropdown />
-        <Link href="/about" className="px-5 py-2.5 rounded-full bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all backdrop-blur-md">
+        <Link href="/about" className="px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-zinc-900/50 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white transition-all backdrop-blur-md text-sm md:text-base">
           About
         </Link>
       </Header>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-8 py-32 text-center">
-        <h2 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 text-white drop-shadow-2xl">
-          Decentralized Fundraising <br />
+      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-16 sm:py-24 md:py-32 text-center">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight mb-6 md:mb-8 text-white drop-shadow-2xl">
+          Decentralized Fundraising <br className="hidden sm:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
             Reimagined
           </span>
         </h2>
 
-        <div className="max-w-2xl mx-auto p-8">
-          <p className="text-xl md:text-2xl font-light leading-relaxed text-zinc-300 mb-10">
+        <div className="max-w-2xl mx-auto px-2 sm:p-4 md:p-8">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-light leading-relaxed text-zinc-300 mb-8 md:mb-10">
             A platform for raising funds with automated vesting and milestone-based distribution. All decisions are powered by the backers.
           </p>
 
-          <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
             <Link
               href="/campaigns?status=fundraising"
-              className="px-10 py-5 bg-zinc-100 hover:bg-white text-black text-xl font-bold rounded-full transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95"
+              className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 bg-zinc-100 hover:bg-white text-black text-lg md:text-xl font-bold rounded-full transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95"
             >
               Invest
             </Link>
 
-            <div className="relative group/btn">
+            <div className="relative group/btn w-full sm:w-auto">
               {mounted && !isConnected && showTooltip && (
                 <div className="absolute -top-14 left-1/2 -translate-x-1/2 px-4 py-2 bg-zinc-800/90 backdrop-blur-md border border-zinc-700/50 rounded-xl text-zinc-100 text-sm font-medium whitespace-nowrap shadow-xl animate-in fade-in zoom-in slide-in-from-bottom-2 duration-200 z-50">
                   Connect wallet first
@@ -118,7 +118,7 @@ export default function Home() {
                 </div>
               )}
               <button
-                className={`px-10 py-5 text-xl font-bold rounded-full transition-all active:scale-95 ${mounted && isConnected
+                className={`w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 text-lg md:text-xl font-bold rounded-full transition-all active:scale-95 ${mounted && isConnected
                   ? "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] hover:scale-105"
                   : "bg-zinc-800/40 text-zinc-500 border border-zinc-700/50 cursor-not-allowed opacity-60 backdrop-blur-sm"
                   }`}
@@ -135,10 +135,10 @@ export default function Home() {
 
       {isCreating && <CreateCampaign onCreate={onCreate} onCancel={() => setIsCreating(false)} />}
       {showSuccess && (
-        <div className="fixed bottom-8 right-8 bg-green-900/40 border border-green-500/50 text-green-100 px-6 py-4 rounded-xl shadow-2xl backdrop-blur-md animate-fade-in-up">
+        <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-green-900/40 border border-green-500/50 text-green-100 px-4 md:px-6 py-3 md:py-4 rounded-xl shadow-2xl backdrop-blur-md animate-fade-in-up">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <div className="font-semibold">Campaign created successfully!</div>
+            <div className="font-semibold text-sm md:text-base">Campaign created!</div>
           </div>
         </div>
       )}

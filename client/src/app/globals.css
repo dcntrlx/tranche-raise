@@ -23,7 +23,7 @@ body {
   .glass {
     @apply bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
   }
-  
+
   .glass-hover {
     @apply hover:bg-zinc-800/60 transition-all duration-300 hover:border-white/20 hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.05)];
   }
@@ -34,5 +34,20 @@ body {
 
   .text-glow-cyan {
     text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

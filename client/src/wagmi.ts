@@ -1,7 +1,10 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import {
     arbitrum,
+    arbitrumSepolia,
     sei,
+    seiTestnet,
+    foundry,
 } from 'wagmi/chains';
 
 const seiWithIcon = {
@@ -9,10 +12,17 @@ const seiWithIcon = {
     iconUrl: '/sei-icon.png',
 };
 
-const chains = [
-    arbitrum,
-    seiWithIcon,
-] as const;
+const seiTestnetWithIcon = {
+    ...seiTestnet,
+    iconUrl: '/sei-icon.png',
+};
+
+// Use testnets in development, mainnets in production
+const isDev = process.env.NODE_ENV === 'development';
+
+const chains = isDev
+    ? [foundry, arbitrumSepolia, seiTestnetWithIcon] as const
+    : [arbitrum, seiWithIcon] as const;
 
 export const config = getDefaultConfig({
     appName: 'Tranche Raise',
