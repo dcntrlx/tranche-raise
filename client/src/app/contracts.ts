@@ -1,11 +1,11 @@
 export const CAMPAIGN_FACTORY_ADDRESSES: Record<number, `0x${string}`> = {
     // Mainnets
-    42161: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_42161 as `0x${string}`) || "0xcaf0c4fde258cb8fb3b0766cd071bc4244f4ca50", // Arbitrum
-    1329: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_1329 as `0x${string}`), // Sei
-    // Testnets
+    42161: "0xaf5a6c106ced67e6a56c25825af22e989364ec6f", // Arbitrum
+    1329: "0x35a938ad07d87cc4831a0b117eca82b214e3e9b7", // Sei
+    // Testnets (dev only)
     421614: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_421614 as `0x${string}`), // Arbitrum Sepolia
     1328: (process.env.NEXT_PUBLIC_CAMPAIGN_FACTORY_ADDR_1328 as `0x${string}`), // Sei Testnet
-    // Local
+    // Local (dev only)
     31337: "0x5fbdb2315678afecb367f032d93f642f64180aa3", // Foundry/Anvil
 };
 
